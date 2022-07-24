@@ -4,8 +4,8 @@
 
 start = '\n'.{statement | () } $;
 statement = input:wireset '->' ~ action:combinator '->' output:wireset ;
-wireset = wire [',' wire] ;
-wire::Wire = name:identifier;
+wireset = @+:wire [',' @+:wire] ;
+wire = identifier;
 combinator = arithmetic | decider ;
 
 decider::Decider = left:argument op:logiop ~ right:argument ':' result:deciderout ;

@@ -34,12 +34,6 @@ class fccnModelBuilderSemantics(ModelBuilderSemantics):
         return act
 
 
-class Wire(ModelBase):
-    name = None
-    def __str__(self):
-        return self.name
-
-
 class Decider(ModelBase):
     left = None
     op = None
