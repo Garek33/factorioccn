@@ -25,7 +25,7 @@ class SignalSet:
 
 class Wire:
     def __init__(self):
-        self.signals = SignalSet
+        self.signals = SignalSet()
         self.inputs = {}
         self.outputs = {}
     
@@ -38,7 +38,7 @@ class Wire:
 class Combinator:
     def __init__(self, input_wires, output_wires):
         self.input_wires = input_wires
-        self.input = {}
+        self.input = SignalSet()
         self.output_wires = output_wires
 
     def tick(self):
