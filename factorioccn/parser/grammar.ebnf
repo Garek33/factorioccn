@@ -3,16 +3,16 @@
 @@eol_comments :: /#.*?$/
 
 start = '\n'.{statement} $;
-statement = wireset '->' combinator '->' wireset 
+statement = input:wireset '->' ~ action:combinator '->' output:wireset 
             | () ;
 wireset = identifier [',' identifier] ;
-combinator = decider | arithmetic ;
+combinator = arithmetic | decider ;
 
-decider = argument logiop argument ':' deciderout ;
-deciderout = identifier ['(1)'] ;
+decider = left:argument op:logiop ~ right:argument ':' result:deciderout ;
+deciderout = signal:identifier value:['(1)'] ;
 logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 
-arithmetic = identifier '=' argument arthop argument ;
+arithmetic = result:identifier '=' ~ left:argument op:arthop right:argument ;
 arthop = '+' | '-' | '*' | '/' | '%' | '>>' | '<<' ;
 
 argument = identifier | number ;
