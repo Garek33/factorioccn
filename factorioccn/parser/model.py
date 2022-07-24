@@ -27,10 +27,17 @@ class fccnModelBuilderSemantics(ModelBuilderSemantics):
             if type(t) is type and issubclass(t, ModelBase)
         ] + (types or [])
         super(fccnModelBuilderSemantics, self).__init__(context=context, types=types)
+    def statement(self, ast):
+        act = ast.action
+        act.input = ast.input
+        act.output = ast.output
+        return act
 
 
 class Wire(ModelBase):
     name = None
+    def __str__(self):
+        return self.name
 
 
 class Decider(ModelBase):
@@ -38,6 +45,8 @@ class Decider(ModelBase):
     op = None
     result = None
     right = None
+    def __str__(self):
+        return f'{self.input} -> {self.left} {self.op} {self.right} : {self.result} -> {self.output}'
 
 
 class Arithmetic(ModelBase):
@@ -45,3 +54,5 @@ class Arithmetic(ModelBase):
     op = None
     result = None
     right = None
+    def __str__(self):
+        return f'{self.input} -> {self.result} = {self.left} {self.op} {self.right} -> {self.output}'

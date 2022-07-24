@@ -8,4 +8,5 @@ if __name__ == '__main__':
         instr = infile.read()
 
     ast = parser.parse(instr)
-    pprint.pprint(ast, indent=2, width=200)
+    for line in ast:
+        print(line)
