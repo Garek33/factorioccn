@@ -12,8 +12,8 @@ decider::Decider = left:argument op:logiop ~ right:argument ':' result:deciderou
 deciderout = signal:identifier value:['(1)'] ;
 logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 
-arithmetic::Arithmetic = result:identifier '=' ~ left:argument op:arthop right:argument ;
-arthop = '+' | '-' | '*' | '/' | '%' | '>>' | '<<' ;
+arithmetic::Arithmetic = result:identifier '=' ~ left:argument op:arithop right:argument ;
+arithop = '+' | '-' | '*' | '/' | '%' | '**' | '>>' | '<<' | '&' | '|' | '^' ;
 
 argument = identifier | number ;
 
