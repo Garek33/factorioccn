@@ -1,0 +1,12 @@
+#regulates a safe rail crossing
+#one io wire connects to signals and gates
+#signals are configured to read state and to hold red on G > 0
+#gates are configured to read state
+#   gates along the rail close unless P = 1
+#   gates crossing the rail open unless P = 1
+
+io -> red > 0 : T(1) -> sigdata
+io -> yellow > 0 : T(1) -> sigdata
+io -> G > 0 : P(1) -> gdata1
+gdata1 -> each = each * 1 -> gdata2
+gdata2,sigdata -> P > T : P(1) -> io
