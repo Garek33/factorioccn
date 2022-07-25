@@ -27,11 +27,6 @@ class fccnModelBuilderSemantics(ModelBuilderSemantics):
             if type(t) is type and issubclass(t, ModelBase)
         ] + (types or [])
         super(fccnModelBuilderSemantics, self).__init__(context=context, types=types)
-    def statement(self, ast):
-        act = ast.action
-        act.input = ast.input
-        act.output = ast.output
-        return act
 
 
 class Decider(ModelBase):

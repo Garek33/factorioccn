@@ -2,8 +2,8 @@
 @@whitespace :: /[\t ]+/
 @@eol_comments :: /#.*?$/
 
-start = '\n'.{statement | () } $;
-statement = input:wireset '->' ~ action:combinator '->' output:wireset ;
+start::Script = '\n'.{lines+:statement | () } $;
+statement::Statement = input:wireset '->' ~ action:combinator '->' output:wireset ;
 wireset = @+:wire [',' @+:wire] ;
 wire = identifier;
 combinator = arithmetic | decider ;
