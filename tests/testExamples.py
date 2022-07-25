@@ -18,6 +18,19 @@ class TestBasic(unittest.TestCase):
         circuit.tick(5)
         self.assertEqual(circuit.wires['clk'].signals['x'], 6)
 
+    def test_multiline_mod(self):
+        circuit = parse('''
+            in -> x = x + 5 -> int
+            int -> x = x % 10 -> out
+        ''')
+        inp = circuit.wires['in'].signals
+        out = circuit.wires['out'].signals
+        for i in range(20):
+            with self.subTest(i=i):
+                inp += SignalSet({ 'x' : i})
+                circuit.tick(2)
+                self.assertEqual(out['x'], (i+5)%10)
+
 
 class TestLatch(unittest.TestCase):
     def setUp(self):
