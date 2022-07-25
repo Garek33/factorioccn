@@ -2,7 +2,7 @@
 @@whitespace :: /[\t ]+/
 @@eol_comments :: /#.*?$/
 
-start = '\n'.{lines+:statement | () } $;
+start::Script = '\n'.{lines+:statement | () } $;
 statement::Statement = input:wireset '->' ~ action:combinator '->' output:wireset ;
 wireset = @+:wire [',' @+:wire] ;
 wire = identifier;
