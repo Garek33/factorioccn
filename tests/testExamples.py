@@ -20,6 +20,7 @@ class TestBasic(unittest.TestCase):
 
     def test_multiline_mod(self):
         circuit = parse('''
+            #also test that a comment parses correctly
             in -> x = x + 5 -> int
             int -> x = x % 10 -> out
         ''')
@@ -30,6 +31,25 @@ class TestBasic(unittest.TestCase):
                 inp += SignalSet({ 'x' : i})
                 circuit.tick(2)
                 self.assertEqual(out['x'], (i+5)%10)
+
+class TestBarrier(unittest.TestCase):
+    def setUp(self):
+        self.circuit = parse('in -> x > 0 : x -> out')
+        self.out = self.circuit.wires['out'].signals
+
+    def test_positive(self):
+        self.circuit.wires['in'].signals += SignalSet({'x' : 3})
+        self.circuit.tick()
+        self.assertEqual(self.out['x'], 3)
+
+    def test_null(self):
+        self.circuit.tick()
+        self.assertEqual(self.out['x'], 0)
+    
+    def test_negative(self):
+        self.circuit.wires['in'].signals += SignalSet({'x' : -3})
+        self.circuit.tick()
+        self.assertEqual(self.out['x'], 0)
 
 
 class TestLatch(unittest.TestCase):
