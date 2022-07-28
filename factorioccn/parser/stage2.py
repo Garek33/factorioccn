@@ -7,9 +7,8 @@ class FCCNWalker(PreOrderWalker):
         self.circuit = Circuit()
 
     def walk_Statement(self, node):
-        if node is not None:
-            node.action.input = node.input
-            node.action.output = node.output
+        node.action.input = node.input
+        node.action.output = node.output
 
     def walk_Decider(self, node):
         inputs = self.processWires(node.input)
