@@ -19,7 +19,7 @@ class SignalSet:
             return 0
         return self._data[key]
 
-    def __str__(self):
+    def __str__(self): #pragma: no cover
         return str(self._data)
     
     def determine_arg(self, key):
@@ -127,6 +127,6 @@ class Circuit:
             for combinator in self.combinators:
                 combinator.tick()
     
-    def dump(self):
+    def dump(self): #pragma: no cover
         for key in self.wires:
             print(f'{key}: {self.wires[key].signals}')

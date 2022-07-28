@@ -34,7 +34,7 @@ class Decider(ModelBase):
     op = None
     result = None
     right = None
-    def __str__(self):
+    def __str__(self): #pragma: no cover
         return f'{self.input} -> {self.left} {self.op} {self.right} : {self.result} -> {self.output}'
 
 
@@ -43,5 +43,5 @@ class Arithmetic(ModelBase):
     op = None
     result = None
     right = None
-    def __str__(self):
+    def __str__(self): #pragma: no cover
         return f'{self.input} -> {self.result} = {self.left} {self.op} {self.right} -> {self.output}'
