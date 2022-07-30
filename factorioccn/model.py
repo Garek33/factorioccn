@@ -64,7 +64,7 @@ class Combinator:
         if(left == 'each'):
             return ({s : input[s] for s in input if s != right}, Combinator.process_arg(input, right))
         else:
-            return (input[left], Combinator.process_arg(input, right))
+            return ({left: input[left]}, Combinator.process_arg(input, right))
 
 #TODO: handle wildcard signals!
 class DeciderCombinator(Combinator):
@@ -92,7 +92,7 @@ class DeciderCombinator(Combinator):
         
     def process(self, input):
         (left,right) = self.select_inputs(input, self.left, self.right)
-        if self._operation(left,right):
+        if self._operation(left[self.left],right):
             return self._out(input)
         else:
             return SignalSet()
@@ -124,11 +124,11 @@ class ArithmeticCombinator(Combinator):
     def process(self, input):
         (left,right) = self.select_inputs(input, self.left, self.right)
         iseach = isinstance(left, Iterable)
-        intermediate = {x : self._operation(left[x],right) for x in left} if iseach else self._operation(left,right)
+        intermediate = {x : self._operation(left[x],right) for x in left}
         if(self.output_signal == 'each'):
             return SignalSet(intermediate)
         else:
-            return SignalSet({self.output_signal : reduce(lambda a, b: a+b, intermediate.values()) if iseach else intermediate})
+            return SignalSet({self.output_signal : reduce(lambda a, b: a+b, intermediate.values())})
 
 
 class Circuit:

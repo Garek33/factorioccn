@@ -71,7 +71,9 @@ class TestCombinator(unittest.TestCase):
         self.assertEqual(model.Combinator.process_arg(empty_signals, 'b'), 0)
 
     def test_select_inputs(self):
-        self.assertEqual(self.combinator.select_inputs(model.SignalSet({'a' : 1}), 'a', 'b'), (1, 0))
-        self.assertEqual(self.combinator.select_inputs(model.SignalSet(), 'a', 'b'), (0, 0))
-        self.assertEqual(self.combinator.select_inputs(model.SignalSet(), 'a', '5'), (0, 5))
+        self.assertEqual(self.combinator.select_inputs(model.SignalSet({'a' : 1, 'b' : 2}), 'a', 'x'), ({'a' : 1}, 0))
+        self.assertEqual(self.combinator.select_inputs(model.SignalSet({'a' : 1, 'b' : 2}), 'a', 'b'), ({'a' : 1}, 2))
+        self.assertEqual(self.combinator.select_inputs(model.SignalSet(), 'a', 'b'), ({'a' : 0}, 0))
+        self.assertEqual(self.combinator.select_inputs(model.SignalSet(), 'a', '5'), ({'a' : 0}, 5))
+        self.assertEqual(self.combinator.select_inputs(model.SignalSet({'a' : 1, 'b' : 2}), 'each', '5'), ({'a' : 1, 'b' : 2}, 5))
         #TODO: currently missing validation: self.assertRaises(ValueError, lambda: self.combinator.select_inputs(model.SignalSet(), '5', 'b'))
