@@ -52,6 +52,73 @@ class TestWildcardArithmetic(unittest.TestCase):
         self.assertEqual(circuit.wires['out'].signals['b'], 4)
         self.assertEqual(circuit.wires['out'].signals['c'], 6)
 
+
+class TestWildcardDecider(unittest.TestCase):
+    def setUp(self):
+        self.signals = SignalSet({'a' : 1, 'b' : 2, 'c' : 3})
+
+    def _run(self, circuit):
+        circuit.wires['in'].signals += self.signals
+        circuit.tick()
+    
+    def test_each_single(self):
+        circuit = parse('in -> each > 1 : each(1) -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 0)
+        self.assertEqual(circuit.wires['out'].signals['b'], 1)
+        self.assertEqual(circuit.wires['out'].signals['c'], 1)
+    
+    def test_each_value(self):
+        circuit = parse('in -> each > 1 : each -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 0)
+        self.assertEqual(circuit.wires['out'].signals['b'], 2)
+        self.assertEqual(circuit.wires['out'].signals['c'], 3)
+    
+    def test_all_false(self):
+        circuit = parse('in -> everything > 1 : everything(1) -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 0)
+        self.assertEqual(circuit.wires['out'].signals['b'], 0)
+        self.assertEqual(circuit.wires['out'].signals['c'], 0)
+    
+    def test_all_all_single(self):
+        circuit = parse('in -> everything > -1 : everything(1) -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 1)
+        self.assertEqual(circuit.wires['out'].signals['b'], 1)
+        self.assertEqual(circuit.wires['out'].signals['c'], 1)
+
+    def test_all_all_value(self):
+        circuit = parse('in -> everything > -1 : everything -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 1)
+        self.assertEqual(circuit.wires['out'].signals['b'], 2)
+        self.assertEqual(circuit.wires['out'].signals['c'], 3)
+
+    def test_any_all_single(self):
+        circuit = parse('in -> anything > 1 : everything(1) -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 1)
+        self.assertEqual(circuit.wires['out'].signals['b'], 1)
+        self.assertEqual(circuit.wires['out'].signals['c'], 1)
+
+    def test_any_all_value(self):
+        circuit = parse('in -> anything > 1 : everything -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 1)
+        self.assertEqual(circuit.wires['out'].signals['b'], 2)
+        self.assertEqual(circuit.wires['out'].signals['c'], 3)
+        
+    def test_any_any_value(self):
+        circuit = parse('in -> anything > 1 : anything -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 0)
+        self.assertEqual(circuit.wires['out'].signals['b'], 2)
+        self.assertEqual(circuit.wires['out'].signals['c'], 0)
+
+
+
 class TestBarrier(unittest.TestCase):
     def setUp(self):
         self.circuit = parse('in -> x > 0 : x -> out')

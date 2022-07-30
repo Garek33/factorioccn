@@ -19,4 +19,4 @@ argument = identifier | number ;
 
 @name
 identifier = /[a-zA-Z_][0-9a-zA-Z_]*/ ;
-number::int = /[0-9]+/ ;
+number::int = /-?[0-9]+/ ;

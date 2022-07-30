@@ -62,7 +62,7 @@ class Combinator:
 
     def select_inputs(self, input, left, right):
         if(left == 'each'):
-            return ({s : input[s] for s in input if s != right}, Combinator.process_arg(input, right))
+            return ({s : input[s] for s in input}, Combinator.process_arg(input, right))
         else:
             return ({left: input[left]}, Combinator.process_arg(input, right))
 
@@ -85,15 +85,35 @@ class DeciderCombinator(Combinator):
         self.output_signal = output_signal
         self.output_value = output_value
         self._operation = DeciderCombinator.operations[op]
-        if output_value is None:
-            self._out = lambda input: SignalSet({output_signal : input[output_signal]})
+        
+    def select_inputs(self, input, left, right):
+        if(left in ('everything, anything')):
+            return ({s : input[s] for s in input if s != right}, Combinator.process_arg(input, right))
         else:
-            self._out = lambda input: SignalSet({output_signal : output_value})
+            return super().select_inputs(input, left, right)
         
     def process(self, input):
         (left,right) = self.select_inputs(input, self.left, self.right)
-        if self._operation(left[self.left],right):
-            return self._out(input)
+        output = SignalSet()
+        passes = True
+        for stype, value in left.items():
+            cmp = self._operation(value, right)
+            if self.left == 'everything' or self.left == stype:
+                passes = passes and cmp
+                if not passes:
+                    break
+            elif self.left == 'anything':
+                passes = passes or cmp
+            rval = value if self.output_value is None else self.output_value
+            if (self.output_signal == 'each' and cmp) or self.output_signal == 'everything':
+                output += SignalSet({stype : rval})
+            elif self.output_signal == 'anything' and cmp:
+                output += SignalSet({stype : rval})
+                break #TODO: proper ordering of signals!
+            elif self.output_signal not in ('anything', 'everything', 'each') and (self.left == 'each' or stype == self.output_signal):
+                output += SignalSet({self.output_signal : rval})
+        if passes:
+            return output
         else:
             return SignalSet()
 
@@ -123,7 +143,6 @@ class ArithmeticCombinator(Combinator):
         
     def process(self, input):
         (left,right) = self.select_inputs(input, self.left, self.right)
-        iseach = isinstance(left, Iterable)
         intermediate = {x : self._operation(left[x],right) for x in left}
         if(self.output_signal == 'each'):
             return SignalSet(intermediate)
