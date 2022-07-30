@@ -1,3 +1,7 @@
+from functools import reduce
+from typing import Iterable
+
+
 class SignalSet:
     def __init__(self, initial = None):
         self._data = initial
@@ -18,6 +22,9 @@ class SignalSet:
         if key not in self._data:
             return 0
         return self._data[key]
+
+    def __iter__(self):
+        return iter(self._data)
 
     def __str__(self): #pragma: no cover
         return str(self._data)
@@ -54,7 +61,10 @@ class Combinator:
             return input[key]
 
     def select_inputs(self, input, left, right):
-        return (input[left], Combinator.process_arg(input, right))
+        if(left == 'each'):
+            return ({s : input[s] for s in input if s != right}, Combinator.process_arg(input, right))
+        else:
+            return (input[left], Combinator.process_arg(input, right))
 
 #TODO: handle wildcard signals!
 class DeciderCombinator(Combinator):
@@ -113,7 +123,12 @@ class ArithmeticCombinator(Combinator):
         
     def process(self, input):
         (left,right) = self.select_inputs(input, self.left, self.right)
-        return SignalSet({self.output_signal : self._operation(left,right)})
+        iseach = isinstance(left, Iterable)
+        intermediate = {x : self._operation(left[x],right) for x in left} if iseach else self._operation(left,right)
+        if(self.output_signal == 'each'):
+            return SignalSet(intermediate)
+        else:
+            return SignalSet({self.output_signal : reduce(lambda a, b: a+b, intermediate.values()) if iseach else intermediate})
 
 
 class Circuit:

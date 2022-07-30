@@ -32,6 +32,26 @@ class TestBasic(unittest.TestCase):
                 circuit.tick(2)
                 self.assertEqual(out['x'], (i+5)%10)
 
+
+class TestWildcardArithmetic(unittest.TestCase):
+    def test_sum(self):
+        circuit = parse('in -> x = each * 1 -> out')
+        circuit.wires['in'].signals += SignalSet({'a' : 1, 'b' : 2, 'c' : 3})
+        circuit.tick()
+        self.assertEqual(circuit.wires['out'].signals['x'], 6)
+        self.assertEqual(circuit.wires['out'].signals['a'], 0)
+        self.assertEqual(circuit.wires['out'].signals['b'], 0)
+        self.assertEqual(circuit.wires['out'].signals['c'], 0)
+    
+    def test_double(self):
+        circuit = parse('in -> each = each * 2 -> out')
+        circuit.wires['in'].signals += SignalSet({'a' : 1, 'b' : 2, 'c' : 3})
+        circuit.tick()
+        self.assertEqual(circuit.wires['out'].signals['x'], 0)
+        self.assertEqual(circuit.wires['out'].signals['a'], 2)
+        self.assertEqual(circuit.wires['out'].signals['b'], 4)
+        self.assertEqual(circuit.wires['out'].signals['c'], 6)
+
 class TestBarrier(unittest.TestCase):
     def setUp(self):
         self.circuit = parse('in -> x > 0 : x -> out')
