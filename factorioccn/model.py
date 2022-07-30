@@ -85,6 +85,23 @@ class DeciderCombinator(Combinator):
         self.output_signal = output_signal
         self.output_value = output_value
         self._operation = DeciderCombinator.operations[op]
+        self._shortcircuit = left == 'everything' or left not in ('anything', 'everything', 'each')
+        if self._shortcircuit:
+            self._aggpasses = lambda passes, cmp: passes and cmp
+        elif left == 'anything':
+            self._aggpasses = lambda passes, cmp: passes or cmp
+        else:
+            self._aggpasses = lambda _, __: True
+        if self.output_signal == 'each':
+            self._accsignal = lambda stype, rval, cmp: SignalSet({stype : rval}) if cmp else SignalSet()
+        elif self.output_signal == 'everything':
+            self._accsignal = lambda stype, rval, _: SignalSet({stype : rval})
+        elif self.output_signal == 'anything':
+            self._accsignal = lambda stype, rval, cmp: SignalSet({stype : rval}) if cmp else SignalSet()
+        elif left == 'each':
+            self._accsignal = lambda __, rval, _: SignalSet({output_signal : rval})
+        else:
+            self._accsignal = lambda stype, rval, _: SignalSet({stype : rval}) if stype == output_signal else SignalSet()
         
     def select_inputs(self, input, left, right):
         if(left in ('everything, anything')):
@@ -98,20 +115,13 @@ class DeciderCombinator(Combinator):
         passes = True
         for stype, value in left.items():
             cmp = self._operation(value, right)
-            if self.left == 'everything' or self.left == stype:
-                passes = passes and cmp
-                if not passes:
-                    break
-            elif self.left == 'anything':
-                passes = passes or cmp
+            passes = self._aggpasses(passes, cmp)
+            if not passes and self._shortcircuit:
+                break
             rval = value if self.output_value is None else self.output_value
-            if (self.output_signal == 'each' and cmp) or self.output_signal == 'everything':
-                output += SignalSet({stype : rval})
-            elif self.output_signal == 'anything' and cmp:
-                output += SignalSet({stype : rval})
+            output += self._accsignal(stype, rval, cmp)
+            if self.output_signal == 'anything' and cmp:
                 break #TODO: proper ordering of signals!
-            elif self.output_signal not in ('anything', 'everything', 'each') and (self.left == 'each' or stype == self.output_signal):
-                output += SignalSet({self.output_signal : rval})
         if passes:
             return output
         else:
