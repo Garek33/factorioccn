@@ -26,13 +26,6 @@ class TestSignalSet(unittest.TestCase):
         self.assertEqual(self.signal_a._data['a'], 3)
         self.assertEqual(self.signal_a._data['b'], 4)
 
-    def test_determine_arg(self):
-        self.assertEqual(self.signal_a.determine_arg('a'), 1)
-        self.assertEqual(self.signal_a.determine_arg('b'), 0)
-        self.assertEqual(self.empty_signals.determine_arg('a'), 0)
-        self.assertEqual(self.empty_signals.determine_arg('b'), 0)
-
-
 class TestWire(unittest.TestCase):
 
     def test_tick(self):
@@ -48,19 +41,31 @@ class TestWire(unittest.TestCase):
 
 
 class TestCombinator(unittest.TestCase):
-
-    def test_tick(self):
+    def __init__(self, methodName: str = ...) -> None:
+        super().__init__(methodName)
+        class DummyCombinator(model.Combinator):
+            def __init__(self, input_wires, output_wires):
+                super().__init__(input_wires, output_wires)
+                self.called = False
+            def process(self, input):
+                self.called = True
+                return input
         class Mockwire:
             def __init__(self) -> None:
                 self.signals = model.SignalSet()
-        class DummyCombinator(model.Combinator):
-            called = False
-            def process(self, input):
-                DummyCombinator.called = True
-                return input
-        combinator = DummyCombinator([], [Mockwire()])
-        combinator.input += model.SignalSet({'a' : 1 })
-        combinator.tick()
-        self.assertTrue(DummyCombinator.called)
-        self.assertEqual(combinator.input._data, {})
-        self.assertEqual(combinator.output_wires[0].signals._data, {'a' : 1})
+        self.combinator = DummyCombinator([], [Mockwire()])
+
+    def test_tick(self):
+        self.combinator.input += model.SignalSet({'a' : 1 })
+        self.combinator.tick()
+        self.assertTrue(self.combinator.called)
+        self.assertEqual(self.combinator.input._data, {})
+        self.assertEqual(self.combinator.output_wires[0].signals._data, {'a' : 1})
+    
+    def test_determine_arg(self):
+        signal_a = model.SignalSet({'a' : 1})
+        empty_signals = model.SignalSet()
+        self.assertEqual(self.combinator.determine_arg(signal_a, 'a'), 1)
+        self.assertEqual(self.combinator.determine_arg(signal_a, 'b'), 0)
+        self.assertEqual(self.combinator.determine_arg(empty_signals, 'a'), 0)
+        self.assertEqual(self.combinator.determine_arg(empty_signals, 'b'), 0)

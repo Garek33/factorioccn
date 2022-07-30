@@ -21,12 +21,6 @@ class SignalSet:
 
     def __str__(self): #pragma: no cover
         return str(self._data)
-    
-    def determine_arg(self, key):
-        try: #check for constant
-            return int(key)
-        except ValueError: #find it as a signal
-            return self[key]
 
 
 class Wire:
@@ -52,6 +46,12 @@ class Combinator:
         for wire in self.output_wires:
             wire.signals += output
         self.input.clear()
+    
+    def determine_arg(self, input, key):
+        try: #check for constant
+            return int(key)
+        except ValueError: #find it as a signal
+            return input[key]
 
 #TODO: handle wildcard signals!
 class DeciderCombinator(Combinator):
@@ -78,8 +78,8 @@ class DeciderCombinator(Combinator):
             self._out = lambda input: SignalSet({output_signal : output_value})
         
     def process(self, input):
-        left = input.determine_arg(self.left)
-        right = input.determine_arg(self.right)
+        left = self.determine_arg(input, self.left)
+        right = self.determine_arg(input, self.right)
         if self._operation(left,right):
             return self._out(input)
         else:
@@ -110,8 +110,8 @@ class ArithmeticCombinator(Combinator):
         self._operation = ArithmeticCombinator.operations[op]
         
     def process(self, input):
-        left = input.determine_arg(self.left)
-        right = input.determine_arg(self.right)
+        left = self.determine_arg(input, self.left)
+        right = self.determine_arg(input, self.right)
         return SignalSet({self.output_signal : self._operation(left,right)})
 
 
