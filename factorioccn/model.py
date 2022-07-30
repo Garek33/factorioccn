@@ -47,11 +47,14 @@ class Combinator:
             wire.signals += output
         self.input.clear()
     
-    def determine_arg(self, input, key):
+    def process_arg(input, key):
         try: #check for constant
             return int(key)
         except ValueError: #find it as a signal
             return input[key]
+
+    def select_inputs(self, input, left, right):
+        return (input[left], Combinator.process_arg(input, right))
 
 #TODO: handle wildcard signals!
 class DeciderCombinator(Combinator):
@@ -78,8 +81,7 @@ class DeciderCombinator(Combinator):
             self._out = lambda input: SignalSet({output_signal : output_value})
         
     def process(self, input):
-        left = self.determine_arg(input, self.left)
-        right = self.determine_arg(input, self.right)
+        (left,right) = self.select_inputs(input, self.left, self.right)
         if self._operation(left,right):
             return self._out(input)
         else:
@@ -110,8 +112,7 @@ class ArithmeticCombinator(Combinator):
         self._operation = ArithmeticCombinator.operations[op]
         
     def process(self, input):
-        left = self.determine_arg(input, self.left)
-        right = self.determine_arg(input, self.right)
+        (left,right) = self.select_inputs(input, self.left, self.right)
         return SignalSet({self.output_signal : self._operation(left,right)})
 
 

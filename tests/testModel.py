@@ -62,10 +62,16 @@ class TestCombinator(unittest.TestCase):
         self.assertEqual(self.combinator.input._data, {})
         self.assertEqual(self.combinator.output_wires[0].signals._data, {'a' : 1})
     
-    def test_determine_arg(self):
+    def test_process_arg(self):
         signal_a = model.SignalSet({'a' : 1})
         empty_signals = model.SignalSet()
-        self.assertEqual(self.combinator.determine_arg(signal_a, 'a'), 1)
-        self.assertEqual(self.combinator.determine_arg(signal_a, 'b'), 0)
-        self.assertEqual(self.combinator.determine_arg(empty_signals, 'a'), 0)
-        self.assertEqual(self.combinator.determine_arg(empty_signals, 'b'), 0)
+        self.assertEqual(model.Combinator.process_arg(signal_a, 'a'), 1)
+        self.assertEqual(model.Combinator.process_arg(signal_a, 'b'), 0)
+        self.assertEqual(model.Combinator.process_arg(empty_signals, 'a'), 0)
+        self.assertEqual(model.Combinator.process_arg(empty_signals, 'b'), 0)
+
+    def test_select_inputs(self):
+        self.assertEqual(self.combinator.select_inputs(model.SignalSet({'a' : 1}), 'a', 'b'), (1, 0))
+        self.assertEqual(self.combinator.select_inputs(model.SignalSet(), 'a', 'b'), (0, 0))
+        self.assertEqual(self.combinator.select_inputs(model.SignalSet(), 'a', '5'), (0, 5))
+        #TODO: currently missing validation: self.assertRaises(ValueError, lambda: self.combinator.select_inputs(model.SignalSet(), '5', 'b'))
