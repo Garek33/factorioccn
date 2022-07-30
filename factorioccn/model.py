@@ -2,7 +2,7 @@ from functools import reduce
 from typing import Iterable
 
 
-class SignalSet:
+class Frame:
     def __init__(self, initial = None):
         self._data = initial
         if self._data is None:
@@ -32,7 +32,7 @@ class SignalSet:
 
 class Wire:
     def __init__(self):
-        self.signals = SignalSet()
+        self.signals = Frame()
         self.inputs = []
         self.outputs = []
     
@@ -45,7 +45,7 @@ class Wire:
 class Combinator:
     def __init__(self, input_wires, output_wires):
         self.input_wires = input_wires
-        self.input = SignalSet()
+        self.input = Frame()
         self.output_wires = output_wires
 
     def tick(self):
@@ -93,15 +93,15 @@ class DeciderCombinator(Combinator):
         else:
             self._aggpasses = lambda _, __: True
         if self.output_signal == 'each':
-            self._accsignal = lambda stype, rval, cmp: SignalSet({stype : rval}) if cmp else SignalSet()
+            self._accsignal = lambda stype, rval, cmp: Frame({stype : rval}) if cmp else Frame()
         elif self.output_signal == 'everything':
-            self._accsignal = lambda stype, rval, _: SignalSet({stype : rval})
+            self._accsignal = lambda stype, rval, _: Frame({stype : rval})
         elif self.output_signal == 'anything':
-            self._accsignal = lambda stype, rval, cmp: SignalSet({stype : rval}) if cmp else SignalSet()
+            self._accsignal = lambda stype, rval, cmp: Frame({stype : rval}) if cmp else Frame()
         elif left == 'each':
-            self._accsignal = lambda __, rval, _: SignalSet({output_signal : rval})
+            self._accsignal = lambda __, rval, _: Frame({output_signal : rval})
         else:
-            self._accsignal = lambda stype, rval, _: SignalSet({stype : rval}) if stype == output_signal else SignalSet()
+            self._accsignal = lambda stype, rval, _: Frame({stype : rval}) if stype == output_signal else Frame()
         
     def select_inputs(self, input, left, right):
         if(left in ('everything, anything')):
@@ -111,7 +111,7 @@ class DeciderCombinator(Combinator):
         
     def process(self, input):
         (left,right) = self.select_inputs(input, self.left, self.right)
-        output = SignalSet()
+        output = Frame()
         passes = True
         for stype, value in left.items():
             cmp = self._operation(value, right)
@@ -125,7 +125,7 @@ class DeciderCombinator(Combinator):
         if passes:
             return output
         else:
-            return SignalSet()
+            return Frame()
 
 
 class ArithmeticCombinator(Combinator):
@@ -155,9 +155,18 @@ class ArithmeticCombinator(Combinator):
         (left,right) = self.select_inputs(input, self.left, self.right)
         intermediate = {x : self._operation(left[x],right) for x in left}
         if(self.output_signal == 'each'):
-            return SignalSet(intermediate)
+            return Frame(intermediate)
         else:
-            return SignalSet({self.output_signal : reduce(lambda a, b: a+b, intermediate.values())})
+            return Frame({self.output_signal : reduce(lambda a, b: a+b, intermediate.values())})
+
+
+class ConstantCombinator(Combinator):
+    def __init__(self, signals, output_wires):
+        super().__init__([], output_wires)
+        self.signals = signals
+    
+    def process(self, _):
+        return self.signals
 
 
 class Circuit:

@@ -1,12 +1,12 @@
 from tatsu.walkers import PreOrderWalker
 
-from factorioccn.model import Circuit, Wire, DeciderCombinator, ArithmeticCombinator
+from factorioccn.model import Circuit, Wire, Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
 
 class FCCNWalker(PreOrderWalker):
     def __init__(self):
         self.circuit = Circuit()
 
-    def walk_Statement(self, node):
+    def walk_Combinatorstmt(self, node):
         node.action.input = node.input
         node.action.output = node.output
 
@@ -24,6 +24,12 @@ class FCCNWalker(PreOrderWalker):
         inputs = self.processWires(node.input)
         outputs = self.processWires(node.output)
         combinator = ArithmeticCombinator(inputs, node.left, node.op, node.right, node.result, outputs)
+        self.registerCombinator(combinator)
+
+    def walk_ConstantCombinator(self, node):
+        #TODO: validate no input
+        outputs = self.processWires(node.output)
+        combinator = ConstantCombinator(Frame({s.type : s.value for s in node.signals}), outputs)
         self.registerCombinator(combinator)
 
     def processWires(self, wireset):

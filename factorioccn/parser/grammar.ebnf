@@ -1,22 +1,28 @@
 @@grammar :: fccn
-@@whitespace :: /[\t ]+/
 @@eol_comments :: /#.*?$/
 
-start::Script = '\n'.{lines+:statement | () } $;
-statement::Statement = input:wireset '->' ~ action:combinator '->' output:wireset ;
+start::Script = {lines+:statement | () } $;
+statement = combinatorstmt ;
+
+combinatorstmt::Combinatorstmt = [input:wireset '->'] action:combinator '->' ~ output:wireset terminator ;
 wireset = @+:wire [',' @+:wire] ;
 wire = identifier;
-combinator = arithmetic | decider ;
+combinator = arithmetic | decider | constcombinator;
 
-decider::Decider = left:identifier op:logiop ~ right:argument ':' result:deciderout ;
-deciderout = signal:identifier value:['(1)'] ;
+decider::Decider = left:stype op:logiop ~ right:argument ':' result:deciderout ;
+deciderout = signal:stype value:['(1)'] ;
 logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 
-arithmetic::Arithmetic = result:identifier '=' ~ left:identifier op:arithop right:argument ;
+arithmetic::Arithmetic = result:stype '=' ~ left:stype op:arithop right:argument ;
 arithop = '+' | '-' | '*' | '/' | '%' | '**' | '>>' | '<<' | '&' | '|' | '^' ;
 
+constcombinator::ConstantCombinator = '{' ','.{signals+:signal} '}' ;
+
 argument = identifier | number ;
+signal = type:stype '(' value:number ')';
 
 @name
 identifier = /[a-zA-Z_][0-9a-zA-Z_]*/ ;
+stype = /[a-zA-Z_][0-9a-zA-Z_-]*/;
 number::int = /-?[0-9]+/ ;
+terminator = [';'];

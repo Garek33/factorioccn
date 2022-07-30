@@ -1,12 +1,12 @@
 import unittest
 
 from factorioccn.parser import parse
-from factorioccn.model import Circuit, SignalSet
+from factorioccn.model import Circuit, Frame
 
 class TestBasic(unittest.TestCase):
     def test_plus(self):
         circuit = parse('in -> x = x + 1 -> out')
-        circuit.wires['in'].signals += SignalSet({'x' : 1})
+        circuit.wires['in'].signals += Frame({'x' : 1})
         circuit.tick()
         self.assertEqual(circuit.wires['out'].signals['x'], 2)
 
@@ -28,7 +28,7 @@ class TestBasic(unittest.TestCase):
         out = circuit.wires['out'].signals
         for i in range(20):
             with self.subTest(i=i):
-                inp += SignalSet({ 'x' : i})
+                inp += Frame({ 'x' : i})
                 circuit.tick(2)
                 self.assertEqual(out['x'], (i+5)%10)
 
@@ -36,7 +36,7 @@ class TestBasic(unittest.TestCase):
 class TestWildcardArithmetic(unittest.TestCase):
     def test_sum(self):
         circuit = parse('in -> x = each * 1 -> out')
-        circuit.wires['in'].signals += SignalSet({'a' : 1, 'b' : 2, 'c' : 3})
+        circuit.wires['in'].signals += Frame({'a' : 1, 'b' : 2, 'c' : 3})
         circuit.tick()
         self.assertEqual(circuit.wires['out'].signals['x'], 6)
         self.assertEqual(circuit.wires['out'].signals['a'], 0)
@@ -45,7 +45,7 @@ class TestWildcardArithmetic(unittest.TestCase):
     
     def test_double(self):
         circuit = parse('in -> each = each * 2 -> out')
-        circuit.wires['in'].signals += SignalSet({'a' : 1, 'b' : 2, 'c' : 3})
+        circuit.wires['in'].signals += Frame({'a' : 1, 'b' : 2, 'c' : 3})
         circuit.tick()
         self.assertEqual(circuit.wires['out'].signals['x'], 0)
         self.assertEqual(circuit.wires['out'].signals['a'], 2)
@@ -55,7 +55,7 @@ class TestWildcardArithmetic(unittest.TestCase):
 
 class TestWildcardDecider(unittest.TestCase):
     def setUp(self):
-        self.signals = SignalSet({'a' : 1, 'b' : 2, 'c' : 3})
+        self.signals = Frame({'a' : 1, 'b' : 2, 'c' : 3})
 
     def _run(self, circuit):
         circuit.wires['in'].signals += self.signals
@@ -141,7 +141,7 @@ class TestBarrier(unittest.TestCase):
         self.out = self.circuit.wires['out'].signals
 
     def test_positive(self):
-        self.circuit.wires['in'].signals += SignalSet({'x' : 3})
+        self.circuit.wires['in'].signals += Frame({'x' : 3})
         self.circuit.tick()
         self.assertEqual(self.out['x'], 3)
 
@@ -150,7 +150,7 @@ class TestBarrier(unittest.TestCase):
         self.assertEqual(self.out['x'], 0)
     
     def test_negative(self):
-        self.circuit.wires['in'].signals += SignalSet({'x' : -3})
+        self.circuit.wires['in'].signals += Frame({'x' : -3})
         self.circuit.tick()
         self.assertEqual(self.out['x'], 0)
 
@@ -159,7 +159,7 @@ class TestLatch(unittest.TestCase):
     def setUp(self):
         self.circuit = parse('data -> S > R : S(1) -> data')
         self.data = self.circuit.wires['data']
-        self.data.signals += SignalSet({ 'S' : 1})
+        self.data.signals += Frame({ 'S' : 1})
 
     def test_set(self):
         self.circuit.tick()
@@ -168,7 +168,24 @@ class TestLatch(unittest.TestCase):
         self.assertEqual(self.data.signals['S'], 1)
 
     def test_reset(self):
-        self.data.signals += SignalSet({ 'R' : 1})
+        self.data.signals += Frame({ 'R' : 1})
         self.circuit.tick()
         self.assertEqual(self.data.signals['S'], 0)
         self.assertEqual(self.data.signals['R'], 0)
+
+
+class TestConstant(unittest.TestCase):
+    def test_empty(self):
+        circuit = parse('{} -> data')
+        circuit.tick()
+        self.assertEqual(len(circuit.wires['data'].signals._data), 0)
+    
+    def test_single(self):
+        circuit = parse('{signal-a(4)} -> data')
+        circuit.tick()
+        self.assertEqual(circuit.wires['data'].signals._data, {'signal-a': 4})
+    
+    def test_empty(self):
+        circuit = parse('{signal-a(4), signal-b(5)} -> data')
+        circuit.tick()
+        self.assertEqual(circuit.wires['data'].signals._data, {'signal-a': 4, 'signal-b': 5})
