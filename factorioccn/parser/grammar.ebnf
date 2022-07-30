@@ -5,7 +5,7 @@ start::Script = {lines+:statement | () } $;
 statement = combinatorstmt ;
 
 combinatorstmt::Combinatorstmt = [input:wireset '->'] action:combinator '->' ~ output:wireset terminator ;
-wireset = @+:wire [',' @+:wire] ;
+wireset::Wires = wires+:wire [',' wires+:wire] ;
 wire = identifier;
 combinator = arithmetic | decider | constcombinator;
 
@@ -16,7 +16,8 @@ logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 arithmetic::Arithmetic = result:stype '=' ~ left:stype op:arithop right:argument ;
 arithop = '+' | '-' | '*' | '/' | '%' | '**' | '>>' | '<<' | '&' | '|' | '^' ;
 
-constcombinator::ConstantCombinator = '{' ','.{signals+:signal} '}' ;
+constcombinator::ConstantCombinator = signals:constframe ;
+constframe::Constframe = '{' ','.{signals+:signal} '}';
 
 argument = identifier | number ;
 signal = type:stype '(' value:number ')';

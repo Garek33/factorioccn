@@ -1,36 +1,36 @@
-from tatsu.walkers import PreOrderWalker
+from tatsu.walkers import DepthFirstWalker
 
 from factorioccn.model import Circuit, Wire, Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
 
-class FCCNWalker(PreOrderWalker):
+class FCCNWalker(DepthFirstWalker):
     def __init__(self):
         self.circuit = Circuit()
 
-    def walk_Combinatorstmt(self, node):
-        node.action.input = node.input
-        node.action.output = node.output
+    def walk_Combinatorstmt(self, node, children):
+        parts = {x[0]:x[1] for x in children}
+        input = parts[node.input] if node.input is not None else []
+        combinator = parts[node.action](input, parts[node.output])
+        self.registerCombinator(combinator)
 
-    def walk_Decider(self, node):
-        inputs = self.processWires(node.input)
-        outputs = self.processWires(node.output)
+    def walk_Wires(self, node, _):
+        return (node,self.processWires(node.wires))
+
+    def walk_Decider(self, node, _):
         output_signal = node.result.signal
         output_value = node.result.value
-        if output_value is not None:
+        if output_value is not None: #TODO: raise error
             output_value = 1
-        combinator = DeciderCombinator(inputs, node.left, node.op, node.right, output_signal, output_value, outputs)
-        self.registerCombinator(combinator)
+        return (node, lambda inputs, outputs: DeciderCombinator(inputs, node.left, node.op, node.right, output_signal, output_value, outputs))
         
-    def walk_Arithmetic(self, node):
-        inputs = self.processWires(node.input)
-        outputs = self.processWires(node.output)
-        combinator = ArithmeticCombinator(inputs, node.left, node.op, node.right, node.result, outputs)
-        self.registerCombinator(combinator)
+    def walk_Arithmetic(self, node, _):
+        return (node, lambda inputs, outputs: ArithmeticCombinator(inputs, node.left, node.op, node.right, node.result, outputs))
 
-    def walk_ConstantCombinator(self, node):
+    def walk_ConstantCombinator(self, node, children):
         #TODO: validate no input
-        outputs = self.processWires(node.output)
-        combinator = ConstantCombinator(Frame({s.type : s.value for s in node.signals}), outputs)
-        self.registerCombinator(combinator)
+        return (node, lambda _, outputs: ConstantCombinator(children[0], outputs))
+
+    def walk_Constframe(self, node, _):
+        return Frame({s.type : s.value for s in node.signals})
 
     def processWires(self, wireset):
         for wire in wireset:
