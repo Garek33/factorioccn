@@ -8,11 +8,11 @@ wireset = @+:wire [',' @+:wire] ;
 wire = identifier;
 combinator = arithmetic | decider ;
 
-decider::Decider = left:argument op:logiop ~ right:argument ':' result:deciderout ;
+decider::Decider = left:identifier op:logiop ~ right:argument ':' result:deciderout ;
 deciderout = signal:identifier value:['(1)'] ;
 logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 
-arithmetic::Arithmetic = result:identifier '=' ~ left:argument op:arithop right:argument ;
+arithmetic::Arithmetic = result:identifier '=' ~ left:identifier op:arithop right:argument ;
 arithop = '+' | '-' | '*' | '/' | '%' | '**' | '>>' | '<<' | '&' | '|' | '^' ;
 
 argument = identifier | number ;
