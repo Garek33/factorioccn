@@ -1,8 +1,9 @@
 from tatsu.walkers import DepthFirstWalker
 
-from factorioccn.model import Circuit, Wire, Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
+from factorioccn.model import Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
+from factorioccn.parser.builders import CircuitBuilder
 
-class FCCNWalker(DepthFirstWalker):
+class Walker(DepthFirstWalker):
 
     def walk_Script(self, _, children):
         cbuilder = CircuitBuilder()
@@ -39,21 +40,3 @@ class FCCNWalker(DepthFirstWalker):
 
     def walk_Constframe(self, node, _):
         return Frame({s.type : s.value for s in node.signals})
-
-
-class CircuitBuilder:
-    def __init__(self):
-        self.circuit = Circuit()
-
-    def processWires(self, wireset):
-        for wire in wireset:
-            if wire not in self.circuit.wires:
-                self.circuit.wires[wire] = Wire()
-        return [self.circuit.wires[w] for w in wireset]
-    
-    def registerCombinator(self, combinator):
-        self.circuit.combinators.append(combinator)
-        for wire in combinator.input_wires:
-            wire.outputs.append(combinator)
-        for wire in combinator.output_wires:
-            wire.inputs.append(combinator)
