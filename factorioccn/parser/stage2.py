@@ -3,22 +3,30 @@ from tatsu.walkers import DepthFirstWalker
 from factorioccn.model import Circuit, Wire, Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
 
 class FCCNWalker(DepthFirstWalker):
-    def __init__(self):
-        self.circuit = Circuit()
+
+    def walk_Script(self, _, children):
+        cbuilder = CircuitBuilder()
+        for element in children:
+            element(cbuilder)
+        return cbuilder.circuit
 
     def walk_Combinatorstmt(self, node, children):
         parts = {x[0]:x[1] for x in children}
-        input = parts[node.input] if node.input is not None else []
-        combinator = parts[node.action](input, parts[node.output])
-        self.registerCombinator(combinator)
+        input = parts[node.input] if node.input is not None else lambda _: []
+        output = parts[node.output]
+        combinator = parts[node.action]
+        def createCombinator(cbuilder):
+            actual = combinator(input(cbuilder), output(cbuilder))
+            cbuilder.registerCombinator(actual)
+        return createCombinator
 
     def walk_Wires(self, node, _):
-        return (node,self.processWires(node.wires))
+        return (node, lambda cbuilder: cbuilder.processWires(node.wires))
 
     def walk_Decider(self, node, _):
         output_signal = node.result.signal
         output_value = node.result.value
-        if output_value is not None: #TODO: raise error
+        if output_value is not None:
             output_value = 1
         return (node, lambda inputs, outputs: DeciderCombinator(inputs, node.left, node.op, node.right, output_signal, output_value, outputs))
         
@@ -31,6 +39,11 @@ class FCCNWalker(DepthFirstWalker):
 
     def walk_Constframe(self, node, _):
         return Frame({s.type : s.value for s in node.signals})
+
+
+class CircuitBuilder:
+    def __init__(self):
+        self.circuit = Circuit()
 
     def processWires(self, wireset):
         for wire in wireset:

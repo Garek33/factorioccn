@@ -10,5 +10,4 @@ _parser = compile(_grammar, semantics=fccnModelBuilderSemantics())
 def parse(input):
     model = _parser.parse(input)
     walker = FCCNWalker()
-    walker.walk(model)
-    return walker.circuit
+    return walker.walk(model)
