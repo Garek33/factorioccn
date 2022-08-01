@@ -2,7 +2,13 @@
 @@eol_comments :: /#.*?$/
 
 start::Script = {lines+:statement | () } $;
-statement = combinatorstmt ;
+statement = combinatorstmt | test;
+
+test::Test = 'test' name:identifier '{' {lines+:teststmt} '}';
+teststmt::Teststmt = tick:number ':' ';'.{cmds:testcmd} terminator;
+testcmd::Testcmd = op:testop ','.{kv+:testkv};
+testkv::Testkv = wire:identifier '=' signals:constframe;
+testop = 'set' | 'expect';
 
 combinatorstmt::Combinatorstmt = [input:wireset '->'] action:combinator '->' ~ output:wireset terminator ;
 wireset::Wires = wires+:wire [',' wires+:wire] ;

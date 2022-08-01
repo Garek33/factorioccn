@@ -10,3 +10,15 @@ io -> yellow > 0 : T(1) -> sigdata
 io -> G > 0 : P(1) -> gdata1
 gdata1 -> each = each * 1 -> gdata2
 gdata2,sigdata -> P > T : P(1) -> io
+
+test train_first {
+    0: set io = {yellow(1)}
+    1: set io = {yellow(1), G(1)}
+    2: set io = {yellow(1), G(1)}; expect io = {}
+    3: set io = {red(1), G(1)}; expect io = {}
+    4: set io = {red(1), G(1)}; expect io = {}
+    5: set io = {red(1), G(1)}; expect io = {}
+    6: set io = {G(1)}
+    7: set io = {G(1)}; expect io = {}
+    8: set io = {G(1)}; expect io = {P(1)}
+}

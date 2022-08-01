@@ -1,6 +1,8 @@
+from typing import Mapping
 from tatsu.walkers import DepthFirstWalker
 
-from factorioccn.model import Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
+from factorioccn.model.combinators import Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
+from factorioccn.model.testing import Tick
 from factorioccn.parser.builders import CircuitBuilder
 
 class Walker(DepthFirstWalker):
@@ -9,7 +11,34 @@ class Walker(DepthFirstWalker):
         cbuilder = CircuitBuilder()
         for element in children:
             element(cbuilder)
-        return cbuilder.circuit
+        return cbuilder.finalize()
+
+    def walk_Test(self, node, children):
+        name = node.name
+        ticks = [c for c in children if not isinstance(c,str)]
+        return lambda cbuilder: cbuilder.addTest(name, ticks)
+
+    def walk_Teststmt(self, node, children):
+        expected = {}
+        sets = {}
+        for c in children:
+            c(expected,sets)
+        return Tick(node.tick, expected, sets)
+
+    def walk_Testcmd(self, node, children):
+        kv = {p[0] : p[1] for p in children if not isinstance(p, str)}
+        if node.op == 'expect':
+            select = lambda expected, _: expected
+        else:
+            select = lambda _, sets: sets
+        def process(expected, sets):
+            map = select(expected, sets)
+            for w, f in kv.items():
+                map[w] = f
+        return process
+    
+    def walk_Testkv(self, node, children):
+        return (node.wire, children[0])
 
     def walk_Combinatorstmt(self, node, children):
         parts = {x[0]:x[1] for x in children}

@@ -1,7 +1,7 @@
 import unittest
 
 from factorioccn.parser import parse
-from factorioccn.model import Circuit, Frame
+from factorioccn.model.combinators import Frame
 
 class TestBasic(unittest.TestCase):
     def test_plus(self):

@@ -2,17 +2,17 @@ from operator import mod
 from statistics import mode
 import unittest
 
-from factorioccn import model
+from factorioccn.model.combinators import Frame, Wire, Combinator
 
 class TestSignalSet(unittest.TestCase):
 
     def setUp(self):
-        self.empty_signals = model.Frame()
-        self.signal_a = model.Frame({'a' : 1})
+        self.empty_signals = Frame()
+        self.signal_a = Frame({'a' : 1})
 
     def test_default_signals(self):
         self.assertEqual(self.empty_signals._data, {})
-        empty_signals2 = model.Frame()
+        empty_signals2 = Frame()
         self.assertNotEqual(id(self.empty_signals._data), id(empty_signals2._data))
 
     def test_iadd_basic(self):
@@ -22,7 +22,7 @@ class TestSignalSet(unittest.TestCase):
         self.assertEqual(self.empty_signals._data['a'], 1)
 
     def test_iadd_addition(self):
-        self.signal_a += model.Frame({'a' : 2, 'b' : 4})
+        self.signal_a += Frame({'a' : 2, 'b' : 4})
         self.assertEqual(self.signal_a._data['a'], 3)
         self.assertEqual(self.signal_a._data['b'], 4)
 
@@ -31,10 +31,10 @@ class TestWire(unittest.TestCase):
     def test_tick(self):
         class Mockcombinator:
             def __init__(self) -> None:
-                self.input = model.Frame()
-        wire = model.Wire()
+                self.input = Frame()
+        wire = Wire()
         wire.outputs.append(Mockcombinator())
-        wire.signals += model.Frame({'a' : 1})
+        wire.signals += Frame({'a' : 1})
         wire.tick()
         self.assertEqual(wire.signals._data, {})
         self.assertEqual(wire.outputs[0].input._data, {'a' : 1})
@@ -43,7 +43,7 @@ class TestWire(unittest.TestCase):
 class TestCombinator(unittest.TestCase):
     def __init__(self, methodName: str = ...) -> None:
         super().__init__(methodName)
-        class DummyCombinator(model.Combinator):
+        class DummyCombinator(Combinator):
             def __init__(self, input_wires, output_wires):
                 super().__init__(input_wires, output_wires)
                 self.called = False
@@ -52,28 +52,28 @@ class TestCombinator(unittest.TestCase):
                 return input
         class Mockwire:
             def __init__(self) -> None:
-                self.signals = model.Frame()
+                self.signals = Frame()
         self.combinator = DummyCombinator([], [Mockwire()])
 
     def test_tick(self):
-        self.combinator.input += model.Frame({'a' : 1 })
+        self.combinator.input += Frame({'a' : 1 })
         self.combinator.tick()
         self.assertTrue(self.combinator.called)
         self.assertEqual(self.combinator.input._data, {})
         self.assertEqual(self.combinator.output_wires[0].signals._data, {'a' : 1})
     
     def test_process_arg(self):
-        signal_a = model.Frame({'a' : 1})
-        empty_signals = model.Frame()
-        self.assertEqual(model.Combinator.process_arg(signal_a, 'a'), 1)
-        self.assertEqual(model.Combinator.process_arg(signal_a, 'b'), 0)
-        self.assertEqual(model.Combinator.process_arg(empty_signals, 'a'), 0)
-        self.assertEqual(model.Combinator.process_arg(empty_signals, 'b'), 0)
+        signal_a = Frame({'a' : 1})
+        empty_signals = Frame()
+        self.assertEqual(Combinator.process_arg(signal_a, 'a'), 1)
+        self.assertEqual(Combinator.process_arg(signal_a, 'b'), 0)
+        self.assertEqual(Combinator.process_arg(empty_signals, 'a'), 0)
+        self.assertEqual(Combinator.process_arg(empty_signals, 'b'), 0)
 
     def test_select_inputs(self):
-        self.assertEqual(self.combinator.select_inputs(model.Frame({'a' : 1, 'b' : 2}), 'a', 'x'), ({'a' : 1}, 0))
-        self.assertEqual(self.combinator.select_inputs(model.Frame({'a' : 1, 'b' : 2}), 'a', 'b'), ({'a' : 1}, 2))
-        self.assertEqual(self.combinator.select_inputs(model.Frame(), 'a', 'b'), ({'a' : 0}, 0))
-        self.assertEqual(self.combinator.select_inputs(model.Frame(), 'a', '5'), ({'a' : 0}, 5))
-        self.assertEqual(self.combinator.select_inputs(model.Frame({'a' : 1, 'b' : 2}), 'each', '5'), ({'a' : 1, 'b' : 2}, 5))
+        self.assertEqual(self.combinator.select_inputs(Frame({'a' : 1, 'b' : 2}), 'a', 'x'), ({'a' : 1}, 0))
+        self.assertEqual(self.combinator.select_inputs(Frame({'a' : 1, 'b' : 2}), 'a', 'b'), ({'a' : 1}, 2))
+        self.assertEqual(self.combinator.select_inputs(Frame(), 'a', 'b'), ({'a' : 0}, 0))
+        self.assertEqual(self.combinator.select_inputs(Frame(), 'a', '5'), ({'a' : 0}, 5))
+        self.assertEqual(self.combinator.select_inputs(Frame({'a' : 1, 'b' : 2}), 'each', '5'), ({'a' : 1, 'b' : 2}, 5))
         #TODO: currently missing validation: self.assertRaises(ValueError, lambda: self.combinator.select_inputs(model.SignalSet(), '5', 'b'))
