@@ -108,16 +108,25 @@ class DeciderCombinator(Combinator):
             return ({s : input[s] for s in input if s != right}, Combinator.process_arg(input, right))
         else:
             return super().select_inputs(input, left, right)
+    
+    def select_data(self, input):
+        (left,right) = self.select_inputs(input, self.left, self.right)
+        iter = left if self.output_signal in ('each', 'anything') else {s : input[s] for s in input}
+        return (left, right, iter)
+
         
     def process(self, input):
-        (left,right) = self.select_inputs(input, self.left, self.right)
+        (left,right,iter) = self.select_data(input)
         output = Frame()
         passes = True
-        for stype, value in left.items():
-            cmp = self._operation(value, right)
-            passes = self._aggpasses(passes, cmp)
-            if not passes and self._shortcircuit:
-                break
+        for stype, value in iter.items():
+            if stype in left.keys():
+                cmp = self._operation(value, right)
+                passes = self._aggpasses(passes, cmp)
+                if not passes and self._shortcircuit:
+                    break
+            else:
+                cmp = True
             rval = value if self.output_value is None else self.output_value
             output += self._accsignal(stype, rval, cmp)
             if self.output_signal == 'anything' and cmp:
