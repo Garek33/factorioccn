@@ -43,8 +43,7 @@ class Wire:
 
 
 class Combinator:
-    def __init__(self, input_wires, output_wires):
-        self.input_wires = input_wires
+    def __init__(self, output_wires):
         self.input = Frame()
         self.output_wires = output_wires
 
@@ -53,6 +52,18 @@ class Combinator:
         for wire in self.output_wires:
             wire.signals += output
         self.input.clear()
+
+
+class BinaryCombinator(Combinator):
+    def __init__(self, input_wires, left, right, output_wires):
+        super().__init__(output_wires)
+        self.input_wires = input_wires
+        self.left = left
+        self.right = right
+        if(left == 'each'):
+            self.select_inputs = lambda input: ({s : input[s] for s in input}, BinaryCombinator.process_arg(input, right))
+        else:
+            self.select_inputs = lambda input: ({left: input[left]}, BinaryCombinator.process_arg(input, right))
     
     def process_arg(input, key):
         try: #check for constant
@@ -60,14 +71,9 @@ class Combinator:
         except ValueError: #find it as a signal
             return input[key]
 
-    def select_inputs(self, input, left, right):
-        if(left == 'each'):
-            return ({s : input[s] for s in input}, Combinator.process_arg(input, right))
-        else:
-            return ({left: input[left]}, Combinator.process_arg(input, right))
 
 #TODO: handle wildcard signals!
-class DeciderCombinator(Combinator):
+class DeciderCombinator(BinaryCombinator):
     operations = {
         '>' : lambda a,b: a > b,
         '>=' : lambda a,b: a >= b,
@@ -78,10 +84,8 @@ class DeciderCombinator(Combinator):
     }
 
     def __init__(self, input_wires, left, op, right, output_signal, output_value, output_wires):
-        Combinator.__init__(self, input_wires, output_wires)
+        super().__init__(input_wires, left, right, output_wires)
         self.op = op
-        self.left = left
-        self.right = right
         self.output_signal = output_signal
         self.output_value = output_value
         self._operation = DeciderCombinator.operations[op]
@@ -102,18 +106,16 @@ class DeciderCombinator(Combinator):
             self._accsignal = lambda __, rval, _: Frame({output_signal : rval})
         else:
             self._accsignal = lambda stype, rval, _: Frame({stype : rval}) if stype == output_signal else Frame()
-        
-    def select_inputs(self, input, left, right):
-        if(left in ('everything, anything')):
-            return ({s : input[s] for s in input if s != right}, Combinator.process_arg(input, right))
+        if self.left in ('everything', 'anything'):
+            self.select_inputs = lambda input: ({s : input[s] for s in input if s != right}, BinaryCombinator.process_arg(input, right))
+        if self.output_signal in ('each', 'anything'):
+            self._select_iter = lambda _, left: left
         else:
-            return super().select_inputs(input, left, right)
-    
-    def select_data(self, input):
-        (left,right) = self.select_inputs(input, self.left, self.right)
-        iter = left if self.output_signal in ('each', 'anything') else {s : input[s] for s in input}
-        return (left, right, iter)
+            self._select_iter = lambda input, _: input._data
 
+    def select_data(self, input):
+        (left, right) = self.select_inputs(input)
+        return (left, right, self._select_iter(input, left))
         
     def process(self, input):
         (left,right,iter) = self.select_data(input)
@@ -137,7 +139,7 @@ class DeciderCombinator(Combinator):
             return Frame()
 
 
-class ArithmeticCombinator(Combinator):
+class ArithmeticCombinator(BinaryCombinator):
     operations = {
         '+' : lambda a,b: a + b,
         '-' : lambda a,b: a - b,
@@ -153,15 +155,13 @@ class ArithmeticCombinator(Combinator):
     }
 
     def __init__(self, input_wires, left, op, right, output_signal, output_wires):
-        Combinator.__init__(self, input_wires, output_wires)
+        super().__init__(input_wires, left, right, output_wires)
         self.op = op
-        self.left = left
-        self.right = right
         self.output_signal = output_signal
         self._operation = ArithmeticCombinator.operations[op]
         
     def process(self, input):
-        (left,right) = self.select_inputs(input, self.left, self.right)
+        (left,right) = self.select_inputs(input)
         intermediate = {x : self._operation(left[x],right) for x in left}
         if(self.output_signal == 'each'):
             return Frame(intermediate)
@@ -171,7 +171,7 @@ class ArithmeticCombinator(Combinator):
 
 class ConstantCombinator(Combinator):
     def __init__(self, signals, output_wires):
-        super().__init__([], output_wires)
+        super().__init__(output_wires)
         self.signals = signals
     
     def process(self, _):

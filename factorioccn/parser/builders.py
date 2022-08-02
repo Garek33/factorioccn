@@ -1,4 +1,4 @@
-from factorioccn.model import Circuit, Wire
+from factorioccn.model import BinaryCombinator, Circuit, Wire
 
 class CircuitBuilder:
     def __init__(self):
@@ -12,7 +12,8 @@ class CircuitBuilder:
     
     def registerCombinator(self, combinator):
         self.circuit.combinators.append(combinator)
-        for wire in combinator.input_wires:
-            wire.outputs.append(combinator)
+        if isinstance(combinator, BinaryCombinator):
+            for wire in combinator.input_wires:
+                wire.outputs.append(combinator)
         for wire in combinator.output_wires:
             wire.inputs.append(combinator)
