@@ -1,11 +1,11 @@
-from typing import Sequence
+from typing import Mapping, Sequence
 from factorioccn.model.combinators import Circuit, Wire
-from factorioccn.model.testing import Test, Tick
+from factorioccn.model.testing import Slice, Test, Tick
 
 class CircuitBuilder:
     def __init__(self):
         self.circuit = Circuit()
-        self.tests : list[Test] = []
+        self.tests: list[Test] = []
 
     def processWires(self, wireset):
         for wire in wireset:
@@ -27,3 +27,26 @@ class CircuitBuilder:
         for test in self.tests:
             test.run()
         return self.circuit
+
+    
+class TestTickBuilder:
+    def __init__(self) -> None:
+        self.expecteds: Mapping[str,Slice] = {}
+        self.sets: Mapping[str,Slice] = {}
+
+    def addSets(self, slice: Slice):
+        self._mergeSlice(self.sets, slice)
+    
+    def addExpecteds(self, slice: Slice):
+        self._mergeSlice(self.expecteds, slice)
+
+    def finalize(self, tick: int):
+        return Tick(tick, self.expecteds.values(), self.sets.values())
+
+    def _mergeSlice(self, map: Mapping[str,Slice], slice: Slice):
+        wire = slice.wire
+        if wire in map:
+            map[wire].types += slice.types
+            map[wire].values += slice.values
+        else:
+            map[wire] = slice

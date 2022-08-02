@@ -22,6 +22,9 @@ class Frame:
             return 0
         return self._data[key]
 
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
     def __iter__(self):
         return iter(self._data)
 

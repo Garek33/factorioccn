@@ -2,8 +2,8 @@ from typing import Mapping
 from tatsu.walkers import DepthFirstWalker
 
 from factorioccn.model.combinators import Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
-from factorioccn.model.testing import Tick
-from factorioccn.parser.builders import CircuitBuilder
+from factorioccn.model.testing import Slice, Tick
+from factorioccn.parser.builders import CircuitBuilder, TestTickBuilder
 
 class Walker(DepthFirstWalker):
 
@@ -19,26 +19,29 @@ class Walker(DepthFirstWalker):
         return lambda cbuilder: cbuilder.addTest(name, ticks)
 
     def walk_Teststmt(self, node, children):
-        expected = {}
-        sets = {}
+        builder = TestTickBuilder()
         for c in children:
-            c(expected,sets)
-        return Tick(node.tick, expected, sets)
+            c(builder)
+        return builder.finalize(node.tick)
 
     def walk_Testcmd(self, node, children):
-        kv = {p[0] : p[1] for p in children if not isinstance(p, str)}
         if node.op == 'expect':
-            select = lambda expected, _: expected
+            add = TestTickBuilder.addExpecteds
         else:
-            select = lambda _, sets: sets
-        def process(expected, sets):
-            map = select(expected, sets)
-            for w, f in kv.items():
-                map[w] = f
+            add = TestTickBuilder.addSets
+        def process(builder: TestTickBuilder):
+            for slice in children:
+                add(builder, slice)
         return process
     
     def walk_Testkv(self, node, children):
-        return (node.wire, children[0])
+        if node.value is None:
+            frame = children[0]
+        else:
+            if len(node.slice) != 1: #pragma: no cover
+                pass #TODO: raise error
+            frame = Frame({node.slice[0] : node.value})
+        return Slice(node.wire, node.slice, frame)
 
     def walk_Combinatorstmt(self, node, children):
         parts = {x[0]:x[1] for x in children}

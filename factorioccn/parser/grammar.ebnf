@@ -7,7 +7,7 @@ statement = combinatorstmt | test;
 test::Test = 'test' name:identifier '{' {lines+:teststmt} '}';
 teststmt::Teststmt = tick:number ':' ';'.{cmds:testcmd} terminator;
 testcmd::Testcmd = op:testop ','.{kv+:testkv};
-testkv::Testkv = wire:identifier '=' signals:constframe;
+testkv::Testkv = wire:identifier '[' ','.{slice+:signaltype} ']' '=' (signals:constframe | value:number);
 testop = 'set' | 'expect';
 
 combinatorstmt::Combinatorstmt = [input:wireset '->'] action:combinator '->' ~ output:wireset terminator ;
@@ -15,21 +15,21 @@ wireset::Wires = wires+:wire [',' wires+:wire] ;
 wire = identifier;
 combinator = arithmetic | decider | constcombinator;
 
-decider::Decider = left:stype op:logiop ~ right:argument ':' result:deciderout ;
-deciderout = signal:stype value:['(1)'] ;
+decider::Decider = left:signaltype op:logiop ~ right:argument ':' result:deciderout ;
+deciderout = signal:signaltype value:['(1)'] ;
 logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 
-arithmetic::Arithmetic = result:stype '=' ~ left:stype op:arithop right:argument ;
+arithmetic::Arithmetic = result:signaltype '=' ~ left:signaltype op:arithop right:argument ;
 arithop = '+' | '-' | '*' | '/' | '%' | '**' | '>>' | '<<' | '&' | '|' | '^' ;
 
 constcombinator::ConstantCombinator = signals:constframe ;
 constframe::Constframe = '{' ','.{signals+:signal} '}';
 
 argument = identifier | number ;
-signal = type:stype '(' value:number ')';
+signal = type:signaltype '(' value:number ')';
 
 @name
 identifier = /[a-zA-Z_][0-9a-zA-Z_]*/ ;
-stype = /[a-zA-Z_][0-9a-zA-Z_-]*/;
+signaltype = /[a-zA-Z_][0-9a-zA-Z_-]*/;
 number::int = /-?[0-9]+/ ;
 terminator = [';'];
