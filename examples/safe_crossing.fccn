@@ -20,6 +20,5 @@ test train_first {
     5: set io[red] = 1, io[G] = 1; expect io[P] = 0
     6: set io[G] = 1
     7: set io[G] = 1; expect io[P] = 0
-    8: set io[G] = 1; expect io[P] = 0
-    9: set io[G] = 1; expect io[P] = 1
+    8: set io[G] = 1; expect io[P] = 1
 }
