@@ -61,6 +61,13 @@ class TestWildcardDecider(unittest.TestCase):
         circuit.wires['in'].signals += self.signals
         circuit.tick()
     
+    def test_signal_signal_value(self):
+        circuit = parse('in -> b > 1 : c -> out')
+        self._run(circuit)
+        self.assertEqual(circuit.wires['out'].signals['a'], 0)
+        self.assertEqual(circuit.wires['out'].signals['b'], 0)
+        self.assertEqual(circuit.wires['out'].signals['c'], 3)
+    
     def test_each_each_single(self):
         circuit = parse('in -> each > 1 : each(1) -> out')
         self._run(circuit)
