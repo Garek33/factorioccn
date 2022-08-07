@@ -120,8 +120,10 @@ class DeciderCombinator(BinaryCombinator):
             self.select_inputs = lambda input: ({s : input[s] for s in input if s != right}, BinaryCombinator.process_arg(input, right))
         if self.output_signal in ('each', 'anything'):
             self._select_iter = lambda _, left: left
-        else:
+        elif self.output_signal == 'everything':
             self._select_iter = lambda input, _: input._data
+        else:
+            self._select_iter = lambda input, left: {**left, self.output_signal : input[self.output_signal]}
 
     def select_data(self, input):
         (left, right) = self.select_inputs(input)
