@@ -21,17 +21,14 @@ class Signalresult:
 @dataclass
 class Slice:
     wire: str
-    types: 'list[str]'
     values: Frame
 
     def test(self, wires: Mapping[str, Wire]):
         wire = wires[self.wire]
-        return [Signalresult(self.wire, stype, self.values[stype], wire.signals[stype]) for stype in self.types]
+        return [Signalresult(self.wire, stype, self.values[stype], wire.signals[stype]) for stype in self.values]
 
     def set(self, wires: Mapping[str, Wire]):
-        wire = wires[self.wire]
-        for stype in self.types:
-            wire.signals[stype] = self.values[stype]
+        wires[self.wire].signals += self.values
 
 
 class UnexpectedSignalError(Exception):

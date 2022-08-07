@@ -1,3 +1,4 @@
+from distutils.command.build import build
 from typing import Mapping
 from tatsu.walkers import DepthFirstWalker
 
@@ -25,23 +26,11 @@ class Walker(DepthFirstWalker):
         return builder.finalize(node.tick)
 
     def walk_Testcmd(self, node, children):
-        if node.op == 'expect':
-            add = TestTickBuilder.addExpecteds
+        slice = Slice(node.wire, children[0])
+        if node.op == '=~':
+            return lambda builder: builder.addExpecteds(slice)
         else:
-            add = TestTickBuilder.addSets
-        def process(builder: TestTickBuilder):
-            for slice in children:
-                add(builder, slice)
-        return process
-    
-    def walk_Testkv(self, node, children):
-        if node.value is None:
-            frame = children[0]
-        else:
-            if len(node.slice) != 1: #pragma: no cover
-                pass #TODO: raise error
-            frame = Frame({node.slice[0] : node.value})
-        return Slice(node.wire, node.slice, frame)
+            return lambda builder: builder.addSets(slice)
 
     def walk_Combinatorstmt(self, node, children):
         parts = {x[0]:x[1] for x in children}

@@ -5,10 +5,9 @@ start::Script = {lines+:statement | () } $;
 statement = combinatorstmt | test;
 
 test::Test = 'test' name:identifier '{' {lines+:teststmt} '}';
-teststmt::Teststmt = tick:number ':' ';'.{cmds:testcmd} terminator;
-testcmd::Testcmd = op:testop ','.{kv+:testkv};
-testkv::Testkv = wire:identifier '[' ','.{slice+:signaltype} ']' '=' (signals:constframe | value:number);
-testop = 'set' | 'expect';
+teststmt::Teststmt = tick:number ':' ','.{cmds:testcmd} terminator;
+testcmd::Testcmd = wire:identifier op:testop signals:constframe;
+testop = '+=' | '=~';
 
 combinatorstmt::Combinatorstmt = [input:wireset '->'] action:combinator '->' ~ output:wireset terminator ;
 wireset::Wires = wires+:wire [',' wires+:wire] ;
