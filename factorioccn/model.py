@@ -72,7 +72,6 @@ class BinaryCombinator(Combinator):
             return input[key]
 
 
-#TODO: handle wildcard signals!
 class DeciderCombinator(BinaryCombinator):
     operations = {
         '>' : lambda a,b: a > b,
@@ -90,12 +89,19 @@ class DeciderCombinator(BinaryCombinator):
         self.output_value = output_value
         self._operation = DeciderCombinator.operations[op]
         self._shortcircuit = left == 'everything' or left not in ('anything', 'everything', 'each')
+        self._determineAggpasses(left)
+        self._determineAccsignal(left, output_signal)
+        self._determineDataSelects(right)
+ 
+    def _determineAggpasses(self, left):
         if self._shortcircuit:
             self._aggpasses = lambda passes, cmp: passes and cmp
         elif left == 'anything':
             self._aggpasses = lambda passes, cmp: passes or cmp
         else:
             self._aggpasses = lambda _, __: True
+
+    def _determineAccsignal(self, left, output_signal):
         if self.output_signal == 'each':
             self._accsignal = lambda stype, rval, cmp: Frame({stype : rval}) if cmp else Frame()
         elif self.output_signal == 'everything':
@@ -106,6 +112,8 @@ class DeciderCombinator(BinaryCombinator):
             self._accsignal = lambda __, rval, _: Frame({output_signal : rval})
         else:
             self._accsignal = lambda stype, rval, _: Frame({stype : rval}) if stype == output_signal else Frame()
+
+    def _determineDataSelects(self, right):
         if self.left in ('everything', 'anything'):
             self.select_inputs = lambda input: ({s : input[s] for s in input if s != right}, BinaryCombinator.process_arg(input, right))
         if self.output_signal in ('each', 'anything'):
