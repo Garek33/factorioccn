@@ -3,8 +3,7 @@ from typing import Mapping, Sequence
 from tatsu.walkers import DepthFirstWalker
 
 from factorioccn.model.combinators import Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
-from factorioccn.model.testing import Slice
-from factorioccn.parser.builders import CircuitBuilder, TestHoldBuilder, TestTickBuilder
+from factorioccn.parser.builders import CircuitBuilder, TestExpectsBuilder, TestHoldBuilder, TestSetsBuilder, TestTickBuilder
 
 class Walker(DepthFirstWalker):
 
@@ -38,14 +37,18 @@ class Walker(DepthFirstWalker):
         return builder
 
     def walk_Testcmd(self, node, children):
-        slice = Slice(node.wire, children[0])
-        if node.op == '=~':
-            return lambda builder: builder.addExpecteds(slice)
-        else:
-            return lambda builder: builder.addSets(slice)
+        func = children[0](node.wire, children[1])
+        return lambda builder: func(builder)
+
+    def walk_Testsets(self, node, children):
+        return TestSetsBuilder
+
+    def walk_Testexpects(self, node, children):
+        return TestExpectsBuilder
 
     def walk_Testhold(self, node, children):
-        return lambda builder: builder.holds.append(TestHoldBuilder(node.count, children))
+        thb = TestHoldBuilder(node.count, children)
+        return lambda builder: builder.holds.append(thb)
 
     def walk_Combinatorstmt(self, node, children):
         parts = {x[0]:x[1] for x in children}

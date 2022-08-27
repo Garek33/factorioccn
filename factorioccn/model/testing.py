@@ -19,19 +19,22 @@ class Signalresult:
 
 
 @dataclass
-class Slice:
+class TestOperation:
     wire: str
     values: Frame
 
-    def test(self, wires: Mapping[str, Wire]):
+    def copy(self):
+        return self.__class__(self.wire, self.values.copy())
+    
+
+class TestExpects(TestOperation):
+    def test(self, wires: Mapping[str, Wire]) -> Signalresult:
         wire = wires[self.wire]
         return [Signalresult(self.wire, stype, self.values[stype], wire.signals[stype]) for stype in self.values]
 
+class TestSets(TestOperation):
     def set(self, wires: Mapping[str, Wire]):
         wires[self.wire].signals += self.values
-
-    def copy(self):
-        return Slice(self.wire, self.values.copy())
 
 
 class UnexpectedSignalError(Exception):
@@ -45,9 +48,9 @@ class UnexpectedSignalError(Exception):
 
 
 class Tick:
-    def __init__(self, tick : int, expected : Sequence[Slice], sets : Sequence[Slice]):
-        self._expected = expected
-        self._sets = sets
+    def __init__(self, tick : int, expected : Sequence[TestExpects], sets : Sequence[TestSets]):
+        self._expected : Sequence[TestExpects] = expected
+        self._sets : Sequence[TestSets] = sets
         self.tick = tick
 
     def execute(self, wires : Mapping[str, Wire], *errorargs):

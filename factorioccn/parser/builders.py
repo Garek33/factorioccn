@@ -1,6 +1,6 @@
 from typing import Callable, Mapping, Sequence
 from factorioccn.model.combinators import BinaryCombinator, Circuit, Frame, Wire
-from factorioccn.model.testing import Slice, Test, Tick
+from factorioccn.model.testing import TestExpects, TestOperation, Test, TestSets, Tick
 
 
 class CircuitBuilder:
@@ -33,15 +33,15 @@ class CircuitBuilder:
     
 class TestTickBuilder:
     def __init__(self, tick: int) -> None:
-        self.expecteds: Mapping[str,Slice] = {}
-        self.sets: Mapping[str,Slice] = {}
+        self.expecteds: Mapping[str,TestExpects] = {}
+        self.sets: Mapping[str,TestSets] = {}
         self.tick = tick
         self.holds: 'list[TestHoldBuilder]' = []
 
-    def addSets(self, slice: Slice):
+    def addSets(self, slice: TestSets):
         self._mergeSlice(self.sets, slice)
     
-    def addExpecteds(self, slice: Slice):
+    def addExpects(self, slice: TestExpects):
         self._mergeSlice(self.expecteds, slice)
 
     def empty(self):
@@ -50,13 +50,26 @@ class TestTickBuilder:
     def finalize(self):
         return Tick(self.tick, self.expecteds.values(), self.sets.values())
 
-    def _mergeSlice(self, map: Mapping[str,Slice], slice: Slice):
+    def _mergeSlice(self, map: Mapping[str,TestOperation], slice: TestOperation):
         wire = slice.wire
         if wire in map:
             map[wire].values += slice.values
         else:
             map[wire] = slice.copy()
 
+class TestSetsBuilder:
+    def __init__(self, wire: str, signals: Frame):
+        self.op = TestSets(wire, signals)
+    
+    def __call__(self, tbuilder: TestTickBuilder):
+        tbuilder.addSets(self.op)
+
+class TestExpectsBuilder:
+    def __init__(self, wire: str, signals: Frame):
+        self.op = TestExpects(wire, signals)
+    
+    def __call__(self, tbuilder: TestTickBuilder):
+        tbuilder.addExpects(self.op)
 
 class TestHoldBuilder:
     def __init__(self, count: int, children: Sequence[Callable]) -> None:

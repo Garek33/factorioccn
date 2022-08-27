@@ -8,8 +8,10 @@ test::Test = 'test' name:identifier '{' {lines+:teststmt} '}';
 teststmt::Teststmt = tick:number ':' ','.{cmds:testexpr} terminator;
 testexpr = @:testcmd | @:testhold;
 testcmd::Testcmd = wire:identifier op:testop signals:constframe;
+testop = @:testsets | @:testexpects;
+testsets::Testsets = '+=';
+testexpects::Testexpects = '=~';
 testhold::Testhold = 'for' count:number (cmds+:testcmd | '{' ','.{cmds+:testcmd} '}');
-testop = '+=' | '=~';
 
 combinatorstmt::Combinatorstmt = [input:wireset '->'] action:combinator '->' ~ output:wireset terminator ;
 wireset::Wires = wires+:wire [',' wires+:wire] ;
