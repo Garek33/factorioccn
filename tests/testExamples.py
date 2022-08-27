@@ -96,7 +96,7 @@ class TestWildcardDecider(unittest.TestCase):
         self.assertEqual(circuit.wires['out'].signals['a'], 0)
         self.assertEqual(circuit.wires['out'].signals['b'], 0)
         self.assertEqual(circuit.wires['out'].signals['c'], 0)
-        self.assertEqual(circuit.wires['out'].signals['x'], 6)
+        self.assertEqual(circuit.wires['out'].signals['x'], 5)
     
     def test_all_false(self):
         circuit = parse('in -> everything > 1 : everything(1) -> out')

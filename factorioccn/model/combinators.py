@@ -114,7 +114,7 @@ class DeciderCombinator(BinaryCombinator):
         elif self.output_signal == 'anything':
             self._accsignal = lambda stype, rval, cmp: Frame({stype : rval}) if cmp else Frame()
         elif left == 'each':
-            self._accsignal = lambda __, rval, _: Frame({output_signal : rval})
+            self._accsignal = lambda __, rval, cmp: Frame({output_signal : rval}) if cmp else Frame()
         else:
             self._accsignal = lambda stype, rval, _: Frame({stype : rval}) if stype == output_signal else Frame()
 
