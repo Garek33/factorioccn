@@ -5,8 +5,10 @@ start::Script = {lines+:statement | () } $;
 statement = combinatorstmt | test;
 
 test::Test = 'test' name:identifier '{' {lines+:teststmt} '}';
-teststmt::Teststmt = tick:number ':' ','.{cmds:testcmd} terminator;
+teststmt::Teststmt = tick:number ':' ','.{cmds:testexpr} terminator;
+testexpr = @:testcmd | @:testhold;
 testcmd::Testcmd = wire:identifier op:testop signals:constframe;
+testhold::Testhold = 'for' count:number (cmds+:testcmd | '{' ','.{cmds+:testcmd} '}');
 testop = '+=' | '=~';
 
 combinatorstmt::Combinatorstmt = [input:wireset '->'] action:combinator '->' ~ output:wireset terminator ;
@@ -14,7 +16,7 @@ wireset::Wires = wires+:wire [',' wires+:wire] ;
 wire = identifier;
 combinator = arithmetic | decider | constcombinator;
 
-decider::Decider = left:signaltype op:logiop ~ right:argument ':' result:deciderout ;
+decider::Decider = left:signaltype op:logiop ~ right:argument ':' result:deciderout ; #todo: test if cutting like this works with =
 deciderout = signal:signaltype value:['(1)'] ;
 logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 

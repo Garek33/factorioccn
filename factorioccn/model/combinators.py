@@ -17,6 +17,9 @@ class Frame:
     def clear(self):
         self._data.clear()
 
+    def copy(self):
+        return Frame(self._data.copy())
+
     def __getitem__(self, key):
         if key not in self._data:
             return 0

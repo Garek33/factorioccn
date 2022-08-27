@@ -30,6 +30,9 @@ class Slice:
     def set(self, wires: Mapping[str, Wire]):
         wires[self.wire].signals += self.values
 
+    def copy(self):
+        return Slice(self.wire, self.values.copy())
+
 
 class UnexpectedSignalError(Exception):
     def __init__(self, results : Sequence[Signalresult], tick : int, test : str):

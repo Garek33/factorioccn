@@ -1,10 +1,10 @@
 from distutils.command.build import build
-from typing import Mapping
+from typing import Mapping, Sequence
 from tatsu.walkers import DepthFirstWalker
 
 from factorioccn.model.combinators import Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
-from factorioccn.model.testing import Slice, Tick
-from factorioccn.parser.builders import CircuitBuilder, TestTickBuilder
+from factorioccn.model.testing import Slice
+from factorioccn.parser.builders import CircuitBuilder, TestHoldBuilder, TestTickBuilder
 
 class Walker(DepthFirstWalker):
 
@@ -14,16 +14,28 @@ class Walker(DepthFirstWalker):
             element(cbuilder)
         return cbuilder.finalize()
 
-    def walk_Test(self, node, children):
+    def walk_Test(self, node, children: Sequence[TestTickBuilder]):
         name = node.name
-        ticks = [c for c in children if not isinstance(c,str)]
+        holds = []
+        ticks = []
+        last = 0
+        for c in children:
+            for i in range(last+1, c.tick):
+                builder = TestTickBuilder(i)
+                holds = [r for r in [h(builder) for h in holds] if r]
+                if not builder.empty():
+                    ticks.append(builder.finalize())
+            holds += c.holds
+            holds = [r for r in [h(c) for h in holds] if r]
+            ticks.append(c.finalize())
+            last = c.tick
         return lambda cbuilder: cbuilder.addTest(name, ticks)
 
     def walk_Teststmt(self, node, children):
-        builder = TestTickBuilder()
+        builder = TestTickBuilder(node.tick)
         for c in children:
             c(builder)
-        return builder.finalize(node.tick)
+        return builder
 
     def walk_Testcmd(self, node, children):
         slice = Slice(node.wire, children[0])
@@ -31,6 +43,9 @@ class Walker(DepthFirstWalker):
             return lambda builder: builder.addExpecteds(slice)
         else:
             return lambda builder: builder.addSets(slice)
+
+    def walk_Testhold(self, node, children):
+        return lambda builder: builder.holds.append(TestHoldBuilder(node.count, children))
 
     def walk_Combinatorstmt(self, node, children):
         parts = {x[0]:x[1] for x in children}

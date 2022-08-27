@@ -14,13 +14,9 @@ gdata2,sigdata -> P > T : P(1) -> io
 #test that if a train blocks the crossing, and then a player comes along,
 #  the gates only open after the train has passed
 test train_first {
-    0: io += {yellow(1)}
-    1: io += {yellow(1), G(1)}
-    2: io += {yellow(1), G(1)}, io =~ {P(0)}
-    3: io += {red(1), G(1)}, io =~ {P(0)}
-    4: io += {red(1), G(1)}, io =~ {P(0)}
-    5: io += {red(1), G(1)}, io =~ {P(0)}
-    6: io += {G(1)}, io =~ {P(0)}
-    7: io += {G(1)}, io =~ {P(0)}
-    8: io += {G(1)}, io =~ {P(1)}
+    0: for 3 io += {yellow(1)}
+    1: for 7 io += {G(1)}
+    2: for 6 io =~ {P(0)}
+    3: for 3 io += {red(1)}
+    8: io =~ {P(1)}
 }
