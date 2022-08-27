@@ -12,7 +12,7 @@ class TestBasic(unittest.TestCase):
 
     def test_clock(self):
         circuit = parse('clk -> x = x + 1 -> clk')
-        self.assertEqual(circuit.wires['clk'].signals._data, {})
+        self.assertEqual(circuit.wires['clk'].signals, {})
         circuit.tick()
         self.assertEqual(circuit.wires['clk'].signals['x'], 1)
         circuit.tick(5)
@@ -185,14 +185,14 @@ class TestConstant(unittest.TestCase):
     def test_empty(self):
         circuit = parse('{} -> data')
         circuit.tick()
-        self.assertEqual(len(circuit.wires['data'].signals._data), 0)
+        self.assertEqual(len(circuit.wires['data'].signals), 0)
     
     def test_single(self):
         circuit = parse('{signal-a(4)} -> data')
         circuit.tick()
-        self.assertEqual(circuit.wires['data'].signals._data, {'signal-a': 4})
+        self.assertEqual(circuit.wires['data'].signals, {'signal-a': 4})
     
     def test_empty(self):
         circuit = parse('{signal-a(4), signal-b(5)} -> data')
         circuit.tick()
-        self.assertEqual(circuit.wires['data'].signals._data, {'signal-a': 4, 'signal-b': 5})
+        self.assertEqual(circuit.wires['data'].signals, {'signal-a': 4, 'signal-b': 5})

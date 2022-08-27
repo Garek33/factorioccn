@@ -11,20 +11,20 @@ class TestSignalSet(unittest.TestCase):
         self.signal_a = Frame({'a' : 1})
 
     def test_default_signals(self):
-        self.assertEqual(self.empty_signals._data, {})
+        self.assertEqual(self.empty_signals, {})
         empty_signals2 = Frame()
-        self.assertNotEqual(id(self.empty_signals._data), id(empty_signals2._data))
+        self.assertNotEqual(id(self.empty_signals), id(empty_signals2))
 
     def test_iadd_basic(self):
         self.empty_signals += self.signal_a
-        self.assertEqual(self.empty_signals._data, self.signal_a._data)
-        self.assertNotEqual(id(self.empty_signals._data), id(self.signal_a._data))
-        self.assertEqual(self.empty_signals._data['a'], 1)
+        self.assertEqual(self.empty_signals, self.signal_a)
+        self.assertNotEqual(id(self.empty_signals), id(self.signal_a))
+        self.assertEqual(self.empty_signals['a'], 1)
 
     def test_iadd_addition(self):
         self.signal_a += Frame({'a' : 2, 'b' : 4})
-        self.assertEqual(self.signal_a._data['a'], 3)
-        self.assertEqual(self.signal_a._data['b'], 4)
+        self.assertEqual(self.signal_a['a'], 3)
+        self.assertEqual(self.signal_a['b'], 4)
 
 class TestWire(unittest.TestCase):
 
@@ -36,8 +36,8 @@ class TestWire(unittest.TestCase):
         wire.outputs.append(Mockcombinator())
         wire.signals += Frame({'a' : 1})
         wire.tick()
-        self.assertEqual(wire.signals._data, {})
-        self.assertEqual(wire.outputs[0].input._data, {'a' : 1})
+        self.assertEqual(wire.signals, {})
+        self.assertEqual(wire.outputs[0].input, {'a' : 1})
 
 
 class TestCombinator(unittest.TestCase):
@@ -59,8 +59,8 @@ class TestCombinator(unittest.TestCase):
         self.combinator.input += Frame({'a' : 1 })
         self.combinator.tick()
         self.assertTrue(self.combinator.called)
-        self.assertEqual(self.combinator.input._data, {})
-        self.assertEqual(self.combinator.output_wires[0].signals._data, {'a' : 1})
+        self.assertEqual(self.combinator.input, {})
+        self.assertEqual(self.combinator.output_wires[0].signals, {'a' : 1})
 
 
 class TestBinaryCombinator(unittest.TestCase):

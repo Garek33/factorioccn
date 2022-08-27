@@ -1,38 +1,18 @@
+from collections import UserDict
 from functools import reduce
 
-
-class Frame:
-    def __init__(self, initial = None):
-        self._data = initial
-        if self._data is None:
-            self._data = {}
-
+class Frame(UserDict):
     def __iadd__(self, other):
-        for key in list(other._data):
-            if key not in self._data:
-                self._data[key] = 0
-            self._data[key] += other._data[key]
+        for key in list(other):
+            if key not in self.keys():
+                self[key] = 0
+            self[key] += other[key]
         return self
 
-    def clear(self):
-        self._data.clear()
-
-    def copy(self):
-        return Frame(self._data.copy())
-
     def __getitem__(self, key):
-        if key not in self._data:
+        if key not in self.keys():
             return 0
-        return self._data[key]
-
-    def __setitem__(self, key, value):
-        self._data[key] = value
-
-    def __iter__(self):
-        return iter(self._data)
-
-    def __str__(self): #pragma: no cover
-        return str(self._data)
+        return super().__getitem__(key)
 
 
 class Wire:
@@ -124,7 +104,7 @@ class DeciderCombinator(BinaryCombinator):
         if self.output_signal in ('each', 'anything'):
             self._select_iter = lambda _, left: left
         elif self.output_signal == 'everything':
-            self._select_iter = lambda input, _: input._data
+            self._select_iter = lambda input, _: input
         else:
             self._select_iter = lambda input, left: {**left, self.output_signal : input[self.output_signal]}
 
