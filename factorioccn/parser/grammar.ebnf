@@ -19,7 +19,7 @@ wire = identifier;
 combinator = arithmetic | decider | constcombinator;
 
 decider::Decider = left:signaltype op:logiop ~ right:argument ':' result:deciderout ; #todo: test if cutting like this works with =
-deciderout = signal:signaltype value:['(1)'] ;
+deciderout = signal:signaltype value:['=' '1'] ;
 logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 
 arithmetic::Arithmetic = result:signaltype '=' ~ left:signaltype op:arithop right:argument ;
@@ -29,7 +29,7 @@ constcombinator::ConstantCombinator = signals:constframe ;
 constframe::Constframe = '{' ','.{signals+:signal} '}';
 
 argument = identifier | number ;
-signal = type:signaltype '(' value:number ')';
+signal = type:signaltype ':' value:number;
 
 @name
 identifier = /[a-zA-Z_][0-9a-zA-Z_]*/ ;

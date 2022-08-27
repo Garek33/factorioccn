@@ -5,18 +5,18 @@
 #   gates along the rail close unless P = 1
 #   gates crossing the rail open unless P = 1
 
-io -> red > 0 : T(1) -> sigdata
-io -> yellow > 0 : T(1) -> sigdata
-io -> G > 0 : P(1) -> gdata1
+io -> red > 0 : T=1 -> sigdata
+io -> yellow > 0 : T=1 -> sigdata
+io -> G > 0 : P=1 -> gdata1
 gdata1 -> each = each * 1 -> gdata2
-gdata2,sigdata -> P > T : P(1) -> io
+gdata2,sigdata -> P > T : P=1 -> io
 
 #test that if a train blocks the crossing, and then a player comes along,
 #  the gates only open after the train has passed
 test train_first {
-    0: for 3 io += {yellow(1)}
-    1: for 7 io += {G(1)}
-    2: for 6 io =~ {P(0)}
-    3: for 3 io += {red(1)}
-    8: io =~ {P(1)}
+    0: for 3 io += {yellow: 1}
+    1: for 7 io += {G: 1}
+    2: for 6 io =~ {P: 0}
+    3: for 3 io += {red: 1}
+    8: io =~ {P: 1}
 }
