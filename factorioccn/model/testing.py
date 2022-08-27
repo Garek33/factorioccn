@@ -28,7 +28,7 @@ class TestOperation:
     
 
 class TestExpects(TestOperation):
-    def test(self, wires: Mapping[str, Wire]) -> Signalresult:
+    def test(self, wires: Mapping[str, Wire]) -> Sequence[Signalresult]:
         wire = wires[self.wire]
         return [Signalresult(self.wire, stype, self.values[stype], wire.signals[stype]) for stype in self.values]
 

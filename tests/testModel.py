@@ -1,5 +1,3 @@
-from operator import mod
-from statistics import mode
 import unittest
 
 from factorioccn.model.combinators import Frame, Wire, Combinator, BinaryCombinator

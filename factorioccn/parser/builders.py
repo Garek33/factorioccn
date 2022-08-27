@@ -28,6 +28,7 @@ class CircuitBuilder:
     def finalize(self):
         for test in self.tests:
             test.run()
+        self.circuit.tests = self.tests
         return self.circuit
 
     
@@ -48,7 +49,7 @@ class TestTickBuilder:
         return len(self.sets) == 0 and len(self.expecteds) == 0
 
     def finalize(self):
-        return Tick(self.tick, self.expecteds.values(), self.sets.values())
+        return Tick(self.tick, list(self.expecteds.values()), list(self.sets.values()))
 
     def _mergeSlice(self, map: Mapping[str,TestOperation], slice: TestOperation):
         wire = slice.wire
