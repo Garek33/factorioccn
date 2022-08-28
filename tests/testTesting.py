@@ -1,62 +1,63 @@
 import unittest
 from typing import Mapping
 
-from factorioccn.model.combinators import Frame, Wire
-from factorioccn.model.testing import Signalresult, Test, TestExpects, TestSets, Tick, UnexpectedSignalError
+from model.core import Frame, Wire
+from factorioccn.model.testing import SignalTest, TestExpects, TestSets, Tick, WrongSignalError
+from model.toplevel import Test
 
 
-def makeWire(content: Mapping[str, int]):
+def make_wire(content: Mapping[str, int]):
     w = Wire()
     w.signals = Frame(content)
     return w
 
 
-class testSignalresult(unittest.TestCase):
+class TestSignalTest(unittest.TestCase):
     def testSuccess(self):
-        res = Signalresult("wire", "stype", 2, 2)
-        self.assertTrue(res.isSuccess())
+        res = SignalTest("wire", "stype", 2, 2)
+        self.assertTrue(res.is_success())
 
     def testFail(self):
-        res = Signalresult("wire", "stype", 2, 3)
-        self.assertFalse(res.isSuccess())
+        res = SignalTest("wire", "stype", 2, 3)
+        self.assertFalse(res.is_success())
 
 
-class testTestExpects(unittest.TestCase):
+class TestTestExpects(unittest.TestCase):
     def setUp(self) -> None:
         self.te = TestExpects("wire", Frame({'a': 1, 'b': 0}))
 
     def testSimpleSuccess(self):
-        wires = {"wire": makeWire({'a': 1, 'b': 0})}
+        wires = {"wire": make_wire({'a': 1, 'b': 0})}
         results = self.te.test(wires)
-        self.assertTrue(results[0].isSuccess())
-        self.assertTrue(results[1].isSuccess())
+        self.assertTrue(results[0].is_success())
+        self.assertTrue(results[1].is_success())
 
     def testImplicitZero(self):
-        wires = {"wire": makeWire({'a': 1})}
+        wires = {"wire": make_wire({'a': 1})}
         results = self.te.test(wires)
-        self.assertTrue(results[0].isSuccess())
-        self.assertTrue(results[1].isSuccess())
+        self.assertTrue(results[0].is_success())
+        self.assertTrue(results[1].is_success())
 
     def testSurplusSignal(self):
-        wires = {"wire": makeWire({'a': 1, 'b': 0, 'c': 4})}
+        wires = {"wire": make_wire({'a': 1, 'b': 0, 'c': 4})}
         results = self.te.test(wires)
-        self.assertTrue(results[0].isSuccess())
-        self.assertTrue(results[1].isSuccess())
+        self.assertTrue(results[0].is_success())
+        self.assertTrue(results[1].is_success())
 
     def testMissingValue(self):
-        wires = {"wire": makeWire({'b': 0})}
+        wires = {"wire": make_wire({'b': 0})}
         results = self.te.test(wires)
-        self.assertFalse(results[0].isSuccess())
-        self.assertTrue(results[1].isSuccess())
+        self.assertFalse(results[0].is_success())
+        self.assertTrue(results[1].is_success())
 
     def testWrongValue(self):
-        wires = {"wire": makeWire({'a': 1, 'b': 4})}
+        wires = {"wire": make_wire({'a': 1, 'b': 4})}
         results = self.te.test(wires)
-        self.assertTrue(results[0].isSuccess())
-        self.assertFalse(results[1].isSuccess())
+        self.assertTrue(results[0].is_success())
+        self.assertFalse(results[1].is_success())
 
 
-class testTestSets(unittest.TestCase):
+class TestTestSets(unittest.TestCase):
     def setUp(self) -> None:
         self.wires = {'foo': Wire(), 'bar': Wire()}
 
@@ -75,21 +76,21 @@ class testTestSets(unittest.TestCase):
 
 
 # noinspection PyPep8
-class testTick(unittest.TestCase):
+class TestTick(unittest.TestCase):
     def setUp(self):
         self.tick = Tick(0,
                          [TestExpects('foo', Frame({'a': 1})), TestExpects('bar', Frame({'b': 0}))],
                          [TestSets('foo', Frame({'a': 1}))])
-        self.wires = {'foo': makeWire({'a': 1}), 'bar': makeWire({'b': 0})}
+        self.wires = {'foo': make_wire({'a': 1}), 'bar': make_wire({'b': 0})}
 
     def testValueMissing(self):
         self.wires['foo'].signals = Frame()
-        with self.assertRaisesRegex(UnexpectedSignalError, "unexpected .* dummy:0:\n\tfoo\[a\]: expected 1, actual 0"):
+        with self.assertRaisesRegex(WrongSignalError, "unexpected .* dummy:0:\n\tfoo\[a\]: expected 1, actual 0"):
             self.tick.execute(self.wires, 'dummy')
 
     def testWrongValue(self):
         self.wires['bar'].signals = Frame({'b': 3})
-        with self.assertRaisesRegex(UnexpectedSignalError, "unexpected .* dummy:0:\n\tbar\[b\]: expected 0, actual 3"):
+        with self.assertRaisesRegex(WrongSignalError, "unexpected .* dummy:0:\n\tbar\[b\]: expected 0, actual 3"):
             self.tick.execute(self.wires, 'dummy')
 
     def testSets(self):
@@ -98,11 +99,11 @@ class testTick(unittest.TestCase):
 
 
 # noinspection PyTypeChecker
-class testTest(unittest.TestCase):
+class TestTest(unittest.TestCase):
     def testRun(self):
         class MockCircuit:
             def __init__(self) -> None:
-                self.wires = {'foo': makeWire({'a': 1}), 'bar': makeWire({'b': 0})}
+                self.wires = {'foo': make_wire({'a': 1}), 'bar': make_wire({'b': 0})}
                 self.t = 0
                 self.last = None
 
@@ -110,23 +111,22 @@ class testTest(unittest.TestCase):
                 self.t += delta
 
         mc = MockCircuit()
+        outer = self
 
         class MockTick:
-            def __init__(self, prev: int, cur: int, mc: MockCircuit, env: unittest.TestCase) -> None:
+            def __init__(self, prev: int, cur: int) -> None:
                 self.prev = prev
                 self.tick = cur
-                self.mc = mc
-                self.env = env
 
             def execute(self, wires, name):
-                with self.env.subTest(i=self.tick):
+                with outer.subTest(i=self.tick):
                     for w in wires.values():
-                        self.env.assertEqual(w.signals, Frame())
-                    self.env.assertEqual(name, 'testtestname')
-                    self.env.assertEqual(self.mc.t, self.tick)
-                    if self.mc.last is not None:
-                        self.env.assertEqual(self.prev, self.mc.last.tick)
+                        outer.assertEqual(w.signals, Frame())
+                    outer.assertEqual(name, 'testtestname')
+                    outer.assertEqual(mc.t, self.tick)
+                    if mc.last is not None:
+                        outer.assertEqual(self.prev, mc.last.tick)
 
-        ticks = [MockTick(0, 0, mc, self), MockTick(0, 2, mc, self), MockTick(2, 3, mc, self)]
+        ticks = [MockTick(0, 0), MockTick(0, 2), MockTick(2, 3)]
 
         Test('testtestname', mc, ticks).run()

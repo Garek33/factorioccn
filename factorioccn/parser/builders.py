@@ -1,8 +1,9 @@
-from collections.abc import MutableMapping
-from typing import Callable, Sequence
+from collections.abc import MutableMapping, Callable, Sequence
 
-from factorioccn.model.combinators import BinaryCombinator, Circuit, Frame, Wire
-from factorioccn.model.testing import TestExpects, TestOperation, Test, TestSets, Tick
+from factorioccn.model.combinators import BinaryCombinator
+from model.toplevel import Circuit, Test
+from model.core import Frame, Wire
+from factorioccn.model.testing import TestExpects, TestOperation, TestSets, Tick
 
 
 class CircuitBuilder:
@@ -10,13 +11,13 @@ class CircuitBuilder:
         self.circuit = Circuit()
         self.tests: list[Test] = []
 
-    def processWires(self, wireset):
-        for wire in wireset:
+    def process_wires(self, wires: Sequence[str]):
+        for wire in wires:
             if wire not in self.circuit.wires:
                 self.circuit.wires[wire] = Wire()
-        return [self.circuit.wires[w] for w in wireset]
+        return [self.circuit.wires[w] for w in wires]
 
-    def registerCombinator(self, combinator):
+    def register_combinator(self, combinator):
         self.circuit.combinators.append(combinator)
         if isinstance(combinator, BinaryCombinator):
             for wire in combinator.input_wires:
@@ -24,7 +25,7 @@ class CircuitBuilder:
         for wire in combinator.output_wires:
             wire.inputs.append(combinator)
 
-    def addTest(self, name: str, ticks: Sequence[Tick]):
+    def add_test(self, name: str, ticks: Sequence[Tick]):
         self.tests.append(Test(name, self.circuit, ticks))
 
     def finalize(self):
@@ -36,29 +37,30 @@ class CircuitBuilder:
 
 class TestTickBuilder:
     def __init__(self, tick: int) -> None:
-        self.expecteds: MutableMapping[str, TestExpects] = {}
+        self.expects: MutableMapping[str, TestExpects] = {}
         self.sets: MutableMapping[str, TestSets] = {}
         self.tick = tick
         self.holds: 'list[TestHoldBuilder]' = []
 
-    def addSets(self, slice: TestSets):
-        self._mergeSlice(self.sets, slice)
+    def add_sets(self, op: TestSets):
+        self._merge_slice(self.sets, op)
 
-    def addExpects(self, slice: TestExpects):
-        self._mergeSlice(self.expecteds, slice)
+    def add_expects(self, op: TestExpects):
+        self._merge_slice(self.expects, op)
 
     def empty(self):
-        return len(self.sets) == 0 and len(self.expecteds) == 0
+        return len(self.sets) == 0 and len(self.expects) == 0
 
     def finalize(self):
-        return Tick(self.tick, list(self.expecteds.values()), list(self.sets.values()))
+        return Tick(self.tick, list(self.expects.values()), list(self.sets.values()))
 
-    def _mergeSlice(self, map: MutableMapping[str, TestOperation], slice: TestOperation):
-        wire = slice.wire
-        if wire in map:
-            map[wire].values += slice.values
+    @staticmethod
+    def _merge_slice(dest: MutableMapping[str, TestOperation], op: TestOperation):
+        wire = op.wire
+        if wire in dest:
+            dest[wire].values += op.values
         else:
-            map[wire] = slice.copy()
+            dest[wire] = op.copy()
 
 
 class TestSetsBuilder:
@@ -66,7 +68,7 @@ class TestSetsBuilder:
         self.op = TestSets(wire, signals)
 
     def __call__(self, tbuilder: TestTickBuilder):
-        tbuilder.addSets(self.op)
+        tbuilder.add_sets(self.op)
 
 
 class TestExpectsBuilder:
@@ -74,7 +76,7 @@ class TestExpectsBuilder:
         self.op = TestExpects(wire, signals)
 
     def __call__(self, tbuilder: TestTickBuilder):
-        tbuilder.addExpects(self.op)
+        tbuilder.add_expects(self.op)
 
 
 class TestHoldBuilder:

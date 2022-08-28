@@ -1,11 +1,12 @@
 import unittest
 
-from factorioccn.model.combinators import Frame
-from factorioccn.model.testing import Test, Tick
+from model.core import Frame
+from factorioccn.model.testing import Tick
+from model.toplevel import Test
 from factorioccn.parser import parse
 
 
-class testTestParsing(unittest.TestCase):
+class TestTestParsing(unittest.TestCase):
     def setUp(self) -> None:
         self.circuit = parse('''
         foo -> each = each * 0 -> bar

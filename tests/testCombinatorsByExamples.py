@@ -1,6 +1,6 @@
 import unittest
 
-from factorioccn.model.combinators import Frame
+from model.core import Frame
 from factorioccn.parser import parse
 
 

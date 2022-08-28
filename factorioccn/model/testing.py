@@ -1,18 +1,20 @@
+from collections.abc import MutableMapping, Mapping, Sequence
 from dataclasses import dataclass
 from functools import reduce
-from typing import Mapping, Sequence
 
-from factorioccn.model.combinators import Circuit, Frame, Wire
+from model.core import Frame, Wire
 
 
 @dataclass
-class Signalresult:
+class SignalTest:
+    """Represents testing an actual signal against an expectation"""
     wire: str
     stype: str
     expected: int
     actual: int
 
-    def isSuccess(self):
+    def is_success(self) -> bool:
+        """checks and returns whether the signal fulfills the expectation"""
         return self.expected == self.actual
 
     def __str__(self) -> str:
@@ -21,27 +23,43 @@ class Signalresult:
 
 @dataclass
 class TestOperation:
+    """base class for set and expect operations in circuit testing.
+    Operates on a single ``wire`` and a ``Frame`` of ``values``."""
     wire: str
     values: Frame
 
+    # noinspection PyArgumentList
     def copy(self):
-        # noinspection PyArgumentList
-        return self.__class__(self.wire, self.values.copy())
+        """Create a copy of the actual TestOperation (i.e. the correct subclass)"""
+        cls = type(self)
+        return cls(self.wire, self.values.copy())
 
 
 class TestExpects(TestOperation):
-    def test(self, wires: Mapping[str, Wire]) -> Sequence[Signalresult]:
+    """Test the specified ``wire`` against the ``values``."""
+    def test(self, wires: Mapping[str, Wire]) -> Sequence[SignalTest]:
+        """Test the specified ``wire`` against the ``values``.
+
+        :param wires: All potentially relevant wires
+        :return: The resulting set of ``SignalTest``s
+        """
         wire = wires[self.wire]
-        return [Signalresult(self.wire, stype, self.values[stype], wire.signals[stype]) for stype in self.values]
+        return [SignalTest(self.wire, stype, self.values[stype], wire.signals[stype]) for stype in self.values]
 
 
 class TestSets(TestOperation):
-    def set(self, wires: Mapping[str, Wire]):
+    """Add the contained ``values`` to the specified ``wire``"""
+    def set(self, wires: Mapping[str, Wire]) -> None:
+        """Add the contained ``values`` to the specified ``wire``.
+
+        :param wires: All potentially relevant wires
+        """
         wires[self.wire].signals += self.values
 
 
-class UnexpectedSignalError(Exception):
-    def __init__(self, results: Sequence[Signalresult], tick: int, test: str):
+class WrongSignalError(Exception):
+    """Exception raised if a test fails with a mismatching or missing signal"""
+    def __init__(self, results: Sequence[SignalTest], tick: int, test: str):
         self.test = test
         self.tick = tick
         self.results = results
@@ -52,34 +70,33 @@ class UnexpectedSignalError(Exception):
 
 
 class Tick:
+    """a specific, non-empty tick of a circuit test"""
     def __init__(self, tick: int, expected: Sequence[TestExpects], sets: Sequence[TestSets]):
+        """Create a test tick.
+
+        :param tick: when this tick should be executed
+        :param expected: ``TestExpects`` to check
+        :param sets: ``TestSets`` to apply
+        """
         self._expected: Sequence[TestExpects] = expected
         self._sets: Sequence[TestSets] = sets
         self.tick = tick
 
-    def execute(self, wires: Mapping[str, Wire], *errorargs):
+    def execute(self, wires: MutableMapping[str, Wire], *errorargs) -> None:
+        """Apply this tick to the given set of wires.
+
+        :param wires: wires to check and write to
+        :param errorargs: passthrough for additional info to any WrongSignalError raised
+
+        :raises WrongSignalError: if a check fails
+        """
         tests = []
         for s in self._expected:
             tests += s.test(wires)
-        failed = [t for t in tests if not t.isSuccess()]
+        failed = [t for t in tests if not t.is_success()]
         if len(failed) > 0:
-            raise UnexpectedSignalError(failed, self.tick, *errorargs)
+            raise WrongSignalError(failed, self.tick, *errorargs)
         for s in self._sets:
             s.set(wires)
 
 
-class Test:
-    def __init__(self, name: str, circuit: Circuit, ticks: Sequence[Tick]):
-        self._name = name
-        self._circuit = circuit
-        self._ticks = ticks
-
-    def run(self):
-        t = 0
-        for w in self._circuit.wires.values():
-            w.signals = Frame()
-        for tick in self._ticks:
-            delta = tick.tick - t
-            t += delta
-            self._circuit.tick(delta)
-            tick.execute(self._circuit.wires, self._name)

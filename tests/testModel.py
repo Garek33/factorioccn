@@ -1,6 +1,7 @@
 import unittest
 
-from factorioccn.model.combinators import Frame, Wire, Combinator, BinaryCombinator
+from factorioccn.model.combinators import Combinator, BinaryCombinator
+from model.core import Frame, Wire
 
 
 class TestSignalSet(unittest.TestCase):
@@ -42,8 +43,8 @@ class TestWire(unittest.TestCase):
 
 
 class TestCombinator(unittest.TestCase):
-    def __init__(self, methodName: str = ...) -> None:
-        super().__init__(methodName)
+    def __init__(self, methodname: str = ...) -> None:
+        super().__init__(methodname)
 
         class MockCombinator(Combinator):
             def __init__(self, output_wires):
@@ -58,6 +59,7 @@ class TestCombinator(unittest.TestCase):
             def __init__(self) -> None:
                 self.signals = Frame()
 
+        # noinspection PyTypeChecker
         self.combinator = MockCombinator([Mockwire()])
 
     def test_tick(self):
@@ -69,9 +71,10 @@ class TestCombinator(unittest.TestCase):
 
 
 class TestBinaryCombinator(unittest.TestCase):
-    def __init__(self, methodName: str = ...) -> None:
-        super().__init__(methodName)
+    def __init__(self, methodname: str = ...) -> None:
+        super().__init__(methodname)
 
+        # noinspection PyAbstractClass
         class MockCombinator(BinaryCombinator):
             def __init__(self, input_wires, left, right, output_wires):
                 super().__init__(input_wires, left, right, output_wires)

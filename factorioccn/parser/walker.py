@@ -1,12 +1,14 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 from tatsu.walkers import DepthFirstWalker
 
-from factorioccn.model.combinators import Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
+from factorioccn.model.combinators import DeciderCombinator, ArithmeticCombinator, ConstantCombinator
+from model.core import Frame
 from factorioccn.parser.builders import CircuitBuilder, TestExpectsBuilder, TestHoldBuilder, TestSetsBuilder, \
     TestTickBuilder
 
 
+# noinspection PyMethodMayBeStatic,PyPep8Naming
 class Walker(DepthFirstWalker):
 
     def walk_Script(self, _, children):
@@ -30,7 +32,7 @@ class Walker(DepthFirstWalker):
             holds = [r for r in [h(c) for h in holds] if r]
             ticks.append(c.finalize())
             last = c.tick
-        return lambda cbuilder: cbuilder.addTest(name, ticks)
+        return lambda cbuilder: cbuilder.add_test(name, ticks)
 
     def walk_Teststmt(self, node, children):
         builder = TestTickBuilder(node.tick)
@@ -46,10 +48,10 @@ class Walker(DepthFirstWalker):
         func = ctor(node.wire, signals)
         return lambda builder: func(builder)
 
-    def walk_Testsets(self, node, children):
+    def walk_Testsets(self, _, __):
         return TestSetsBuilder
 
-    def walk_Testexpects(self, node, children):
+    def walk_Testexpects(self, _, __):
         return TestExpectsBuilder
 
     def walk_Testhold(self, node, children):
@@ -64,12 +66,12 @@ class Walker(DepthFirstWalker):
 
         def createCombinator(cbuilder):
             actual = combinator(input(cbuilder), output(cbuilder))
-            cbuilder.registerCombinator(actual)
+            cbuilder.register_combinator(actual)
 
         return createCombinator
 
     def walk_Wires(self, node, _):
-        return (node, lambda cbuilder: cbuilder.processWires(node.wires))
+        return node, lambda cbuilder: cbuilder.process_wires(node.wires)
 
     def walk_Decider(self, node, _):
         output_signal = node.result.signal
@@ -85,7 +87,7 @@ class Walker(DepthFirstWalker):
 
     def walk_ConstantCombinator(self, node, children):
         # TODO: validate no input
-        return (node, lambda _, outputs: ConstantCombinator(children[0], outputs))
+        return node, lambda _, outputs: ConstantCombinator(children[0], outputs)
 
     def walk_Constframe(self, node, _):
         try:
