@@ -33,7 +33,7 @@ class testTestParsing(unittest.TestCase):
 
     def testHold(self):
         test : Test = self.circuit.tests[0]
-        for i in range(1,4):
+        for i in range(1,6):
             with self.subTest(i=i):
                 val = Frame({'a':1})
                 if i == 3:
