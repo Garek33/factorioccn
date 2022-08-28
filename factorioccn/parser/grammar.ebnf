@@ -4,7 +4,7 @@
 start::Script = {lines+:statement | () } $;
 statement = combinatorstmt | test;
 
-test::Test = 'test' name:identifier '{' {lines+:teststmt} '}';
+test::Test = 'test' ~ name:identifier '{' {lines+:teststmt} '}';
 teststmt::Teststmt = tick:number ':' ','.{cmds:testexpr} terminator;
 testexpr = @:testcmd | @:testhold;
 testcmd::Testcmd = wire:identifier op:testop signals:constframe;
@@ -18,17 +18,17 @@ wireset::Wires = wires+:wire [',' wires+:wire] ;
 wire = identifier;
 combinator = arithmetic | decider | constcombinator;
 
-decider::Decider = left:signaltype op:logiop ~ right:argument ':' result:deciderout ; #todo: test if cutting like this works with =
+decider::Decider = left:signaltype op:logiop right:argument ':' ~ result:deciderout ;
 deciderout = signal:signaltype value:['=' '1'] ;
 logiop = '>' | '>=' | '=' | '!=' | '<=' | '<' ;
 
-arithmetic::Arithmetic = result:signaltype '=' ~ left:signaltype op:arithop right:argument ;
+arithmetic::Arithmetic = result:signaltype '=' left:signaltype op:arithop ~ right:argument ;
 arithop = '+' | '-' | '*' | '/' | '%' | '**' | '>>' | '<<' | '&' | '|' | '^' ;
 
 constcombinator::ConstantCombinator = signals:constframe ;
 constframe::Constframe = '{' ','.{signals+:signal} '}';
 
-argument = identifier | number ;
+argument = signaltype | number ;
 signal = type:signaltype ':' value:number;
 
 @name

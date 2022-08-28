@@ -33,6 +33,20 @@ class TestBasic(unittest.TestCase):
                 self.assertEqual(out['x'], (i+5)%10)
 
 
+class TestGrammarEdgeCases(unittest.TestCase):
+    def test_equals(self):
+        circuit = parse('in -> each = 1 : each -> out')
+        circuit.wires['in'].signals += Frame({'a' : 1, 'b' : 2})
+        circuit.tick()
+        self.assertEqual(circuit.wires['out'].signals, Frame({'a' : 1}))
+
+    def test_subtract_signals(self):
+        circuit = parse('in -> signal-a = signal-b -signal-c -> out')
+        circuit.wires['in'].signals += Frame({'signal-b' : 5, 'signal-c' : 2})
+        circuit.tick()
+        self.assertEqual(circuit.wires['out'].signals, Frame({'signal-a' : 3}))
+
+
 class TestWildcardArithmetic(unittest.TestCase):
     def test_sum(self):
         circuit = parse('in -> x = each * 1 -> out')
@@ -164,21 +178,21 @@ class TestBarrier(unittest.TestCase):
 
 class TestLatch(unittest.TestCase):
     def setUp(self):
-        self.circuit = parse('data -> S > R : S=1 -> data')
+        self.circuit = parse('data -> signal-s > signal-r : signal-s=1 -> data')
         self.data = self.circuit.wires['data']
-        self.data.signals += Frame({ 'S' : 1})
+        self.data.signals += Frame({ 'signal-s' : 1})
 
     def test_set(self):
         self.circuit.tick()
-        self.assertEqual(self.data.signals['S'], 1)
+        self.assertEqual(self.data.signals['signal-s'], 1)
         self.circuit.tick(5)
-        self.assertEqual(self.data.signals['S'], 1)
+        self.assertEqual(self.data.signals['signal-s'], 1)
 
     def test_reset(self):
-        self.data.signals += Frame({ 'R' : 1})
+        self.data.signals += Frame({ 'signal-r' : 1})
         self.circuit.tick()
-        self.assertEqual(self.data.signals['S'], 0)
-        self.assertEqual(self.data.signals['R'], 0)
+        self.assertEqual(self.data.signals['signal-s'], 0)
+        self.assertEqual(self.data.signals['signal-r'], 0)
 
 
 class TestConstant(unittest.TestCase):
