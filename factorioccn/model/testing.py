@@ -24,6 +24,7 @@ class TestOperation:
     values: Frame
 
     def copy(self):
+        # noinspection PyArgumentList
         return self.__class__(self.wire, self.values.copy())
     
 

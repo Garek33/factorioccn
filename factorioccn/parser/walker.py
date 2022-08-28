@@ -1,9 +1,11 @@
-from distutils.command.build import build
-from typing import Mapping, Sequence
+from typing import Sequence
+
 from tatsu.walkers import DepthFirstWalker
 
 from factorioccn.model.combinators import Frame, DeciderCombinator, ArithmeticCombinator, ConstantCombinator
-from factorioccn.parser.builders import CircuitBuilder, TestExpectsBuilder, TestHoldBuilder, TestSetsBuilder, TestTickBuilder
+from factorioccn.parser.builders import CircuitBuilder, TestExpectsBuilder, TestHoldBuilder, TestSetsBuilder, \
+    TestTickBuilder
+
 
 class Walker(DepthFirstWalker):
 
@@ -78,4 +80,7 @@ class Walker(DepthFirstWalker):
         return (node, lambda _, outputs: ConstantCombinator(children[0], outputs))
 
     def walk_Constframe(self, node, _):
-        return Frame({s.type : s.value for s in node.signals})
+        try:
+            return Frame({s.type : s.value for s in node.signals})
+        except AttributeError:  # empty constframe has no signals
+            return Frame()

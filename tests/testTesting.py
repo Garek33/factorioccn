@@ -94,6 +94,7 @@ class testTick(unittest.TestCase):
         self.assertEqual(self.wires['foo'].signals, Frame({'a' : 2}))
 
 
+# noinspection PyTypeChecker
 class testTest(unittest.TestCase):
     def testRun(self):
         class MockCircuit:

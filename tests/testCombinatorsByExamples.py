@@ -206,7 +206,7 @@ class TestConstant(unittest.TestCase):
         circuit.tick()
         self.assertEqual(circuit.wires['data'].signals, {'signal-a': 4})
     
-    def test_empty(self):
+    def test_multi(self):
         circuit = parse('{signal-a: 4, signal-b: 5} -> data')
         circuit.tick()
         self.assertEqual(circuit.wires['data'].signals, {'signal-a': 4, 'signal-b': 5})

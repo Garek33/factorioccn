@@ -1,4 +1,6 @@
-from typing import Callable, Mapping, Sequence
+from collections.abc import MutableMapping
+from typing import Callable, Sequence
+
 from factorioccn.model.combinators import BinaryCombinator, Circuit, Frame, Wire
 from factorioccn.model.testing import TestExpects, TestOperation, Test, TestSets, Tick
 
@@ -34,8 +36,8 @@ class CircuitBuilder:
     
 class TestTickBuilder:
     def __init__(self, tick: int) -> None:
-        self.expecteds: Mapping[str,TestExpects] = {}
-        self.sets: Mapping[str,TestSets] = {}
+        self.expecteds: MutableMapping[str,TestExpects] = {}
+        self.sets: MutableMapping[str,TestSets] = {}
         self.tick = tick
         self.holds: 'list[TestHoldBuilder]' = []
 
@@ -51,7 +53,7 @@ class TestTickBuilder:
     def finalize(self):
         return Tick(self.tick, list(self.expecteds.values()), list(self.sets.values()))
 
-    def _mergeSlice(self, map: Mapping[str,TestOperation], slice: TestOperation):
+    def _mergeSlice(self, map: MutableMapping[str,TestOperation], slice: TestOperation):
         wire = slice.wire
         if wire in map:
             map[wire].values += slice.values

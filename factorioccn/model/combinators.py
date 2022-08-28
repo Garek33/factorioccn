@@ -38,6 +38,9 @@ class Combinator:
             wire.signals += output
         self.input.clear()
 
+    def process(self, input):
+        raise NotImplementedError("Combinator.process")
+
 
 class BinaryCombinator(Combinator):
     def __init__(self, input_wires, left, right, output_wires):
@@ -49,8 +52,9 @@ class BinaryCombinator(Combinator):
             self.select_inputs = lambda input: ({s : input[s] for s in input}, BinaryCombinator.process_arg(input, right))
         else:
             self.select_inputs = lambda input: ({left: input[left]}, BinaryCombinator.process_arg(input, right))
-    
-    def process_arg(input, key):
+
+    @staticmethod
+    def process_arg(input: Frame, key):
         try: #check for constant
             return int(key)
         except ValueError: #find it as a signal
