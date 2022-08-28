@@ -15,7 +15,7 @@ class CircuitBuilder:
             if wire not in self.circuit.wires:
                 self.circuit.wires[wire] = Wire()
         return [self.circuit.wires[w] for w in wireset]
-    
+
     def registerCombinator(self, combinator):
         self.circuit.combinators.append(combinator)
         if isinstance(combinator, BinaryCombinator):
@@ -24,7 +24,7 @@ class CircuitBuilder:
         for wire in combinator.output_wires:
             wire.inputs.append(combinator)
 
-    def addTest(self, name : str, ticks : Sequence[Tick]):
+    def addTest(self, name: str, ticks: Sequence[Tick]):
         self.tests.append(Test(name, self.circuit, ticks))
 
     def finalize(self):
@@ -33,17 +33,17 @@ class CircuitBuilder:
         self.circuit.tests = self.tests
         return self.circuit
 
-    
+
 class TestTickBuilder:
     def __init__(self, tick: int) -> None:
-        self.expecteds: MutableMapping[str,TestExpects] = {}
-        self.sets: MutableMapping[str,TestSets] = {}
+        self.expecteds: MutableMapping[str, TestExpects] = {}
+        self.sets: MutableMapping[str, TestSets] = {}
         self.tick = tick
         self.holds: 'list[TestHoldBuilder]' = []
 
     def addSets(self, slice: TestSets):
         self._mergeSlice(self.sets, slice)
-    
+
     def addExpects(self, slice: TestExpects):
         self._mergeSlice(self.expecteds, slice)
 
@@ -53,26 +53,29 @@ class TestTickBuilder:
     def finalize(self):
         return Tick(self.tick, list(self.expecteds.values()), list(self.sets.values()))
 
-    def _mergeSlice(self, map: MutableMapping[str,TestOperation], slice: TestOperation):
+    def _mergeSlice(self, map: MutableMapping[str, TestOperation], slice: TestOperation):
         wire = slice.wire
         if wire in map:
             map[wire].values += slice.values
         else:
             map[wire] = slice.copy()
 
+
 class TestSetsBuilder:
     def __init__(self, wire: str, signals: Frame):
         self.op = TestSets(wire, signals)
-    
+
     def __call__(self, tbuilder: TestTickBuilder):
         tbuilder.addSets(self.op)
+
 
 class TestExpectsBuilder:
     def __init__(self, wire: str, signals: Frame):
         self.op = TestExpects(wire, signals)
-    
+
     def __call__(self, tbuilder: TestTickBuilder):
         tbuilder.addExpects(self.op)
+
 
 class TestHoldBuilder:
     def __init__(self, count: int, children: Sequence[Callable]) -> None:

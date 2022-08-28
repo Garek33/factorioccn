@@ -21,7 +21,7 @@ class Walker(DepthFirstWalker):
         ticks = []
         last = 0
         for c in children:
-            for i in range(last+1, c.tick):
+            for i in range(last + 1, c.tick):
                 builder = TestTickBuilder(i)
                 holds = [r for r in [h(builder) for h in holds] if r]
                 if not builder.empty():
@@ -57,13 +57,15 @@ class Walker(DepthFirstWalker):
         return lambda builder: builder.holds.append(thb)
 
     def walk_Combinatorstmt(self, node, children):
-        parts = {x[0]:x[1] for x in children}
+        parts = {x[0]: x[1] for x in children}
         input = parts[node.input] if node.input is not None else lambda _: []
         output = parts[node.output]
         combinator = parts[node.action]
+
         def createCombinator(cbuilder):
             actual = combinator(input(cbuilder), output(cbuilder))
             cbuilder.registerCombinator(actual)
+
         return createCombinator
 
     def walk_Wires(self, node, _):
@@ -74,17 +76,19 @@ class Walker(DepthFirstWalker):
         output_value = node.result.value
         if output_value is not None:
             output_value = 1
-        return (node, lambda inputs, outputs: DeciderCombinator(inputs, node.left, node.op, node.right, output_signal, output_value, outputs))
-        
+        return (node, lambda inputs, outputs: DeciderCombinator(inputs, node.left, node.op, node.right, output_signal,
+                                                                output_value, outputs))
+
     def walk_Arithmetic(self, node, _):
-        return (node, lambda inputs, outputs: ArithmeticCombinator(inputs, node.left, node.op, node.right, node.result, outputs))
+        return (node, lambda inputs, outputs: ArithmeticCombinator(inputs, node.left, node.op, node.right, node.result,
+                                                                   outputs))
 
     def walk_ConstantCombinator(self, node, children):
-        #TODO: validate no input
+        # TODO: validate no input
         return (node, lambda _, outputs: ConstantCombinator(children[0], outputs))
 
     def walk_Constframe(self, node, _):
         try:
-            return Frame({s.type : s.value for s in node.signals})
+            return Frame({s.type: s.value for s in node.signals})
         except AttributeError:  # empty constframe has no signals
             return Frame()

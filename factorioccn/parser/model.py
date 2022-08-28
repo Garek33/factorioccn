@@ -23,9 +23,9 @@ class ModelBase(Node):
 class fccnModelBuilderSemantics(ModelBuilderSemantics):
     def __init__(self, context=None, types=None):
         types = [
-            t for t in globals().values()
-            if type(t) is type and issubclass(t, ModelBase)
-        ] + (types or [])
+                    t for t in globals().values()
+                    if type(t) is type and issubclass(t, ModelBase)
+                ] + (types or [])
         super(fccnModelBuilderSemantics, self).__init__(context=context, types=types)
 
 
@@ -34,7 +34,8 @@ class Decider(ModelBase):
     op = None
     result = None
     right = None
-    def __str__(self): #pragma: no cover
+
+    def __str__(self):  # pragma: no cover
         return f'{self.input} -> {self.left} {self.op} {self.right} : {self.result} -> {self.output}'
 
 
@@ -43,5 +44,6 @@ class Arithmetic(ModelBase):
     op = None
     result = None
     right = None
-    def __str__(self): #pragma: no cover
+
+    def __str__(self):  # pragma: no cover
         return f'{self.input} -> {self.result} = {self.left} {self.op} {self.right} -> {self.output}'
