@@ -39,7 +39,11 @@ class Walker(DepthFirstWalker):
         return builder
 
     def walk_Testcmd(self, node, children):
-        func = children[0](node.wire, children[1])
+        ctor = children[0]
+        signals = children[1]
+        if isinstance(ctor, Frame):  # order of children is apparently not stable
+            ctor, signals = signals, ctor
+        func = ctor(node.wire, signals)
         return lambda builder: func(builder)
 
     def walk_Testsets(self, node, children):
