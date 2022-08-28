@@ -1,7 +1,7 @@
 # Factorio Circuit Combinator Notation - factorioccn
 
 The Factorio Circuit Combinator Notation (factorioccn or fccn for short) is a language designed for developing and testing combinator circuits for the game [Factorio](https://factorio.com).
-factiorioccn also is a python module which implements this language. It uses [TatSu](https://tatsu.readthedocs.io) for parsing and [factorio-draftsman](https://github.com/redruin1/factorio-draftsman) for some validation and blueprint generation.
+factorioccn also is a python module which implements this language. It uses [TatSu](https://tatsu.readthedocs.io) for parsing and [factorio-draftsman](https://github.com/redruin1/factorio-draftsman) for some validation and blueprint generation.
 
 WARNING: THIS IS VERY PRE-ALPHA. There will be breaking changes without notice!
 
@@ -34,7 +34,7 @@ latch_in, loop -> S > R : S=1 -> loop, io
 The example also changed to having a single wire connection, `io` to the actual tank and plant. 
 We assume that steam generation gets enabled by `S=1` on `io` outside the current circuit.
 
-While this simple example is easy to think through, we generally don't want to draft a circuit and put it into our factory immediatly, i.e. 'test it in production'.
+While this simple example is easy to think through, we generally don't want to draft a circuit and put it into our factory immediately, i.e. 'test it in production'.
 Because testing circuits inside factorio is cumbersome, requiring either mods or even more circuits, fccn provides facilities for defining tests alongside the circuit definition:
 ```
 io -> steam < 10000 : S=1 -> latch_in
@@ -59,7 +59,7 @@ test setAndReset {
 * Exact mapping of Factorio circuit network and combinator mechanics to code
 * Tests alongside circuit definitions
 * Support reusable and concise code with e.g. circuit templates, compile-time flow control and support for multi-file projects
-* Shorthand notation for common patterns, e.g. artifical delays, multiple operations on a single signal and wire
+* Shorthand notation for common patterns, e.g. artificial delays, multiple operations on a single signal and wire
 * Standalone factorioccn executable can run tests and generate blueprints
 * factorioccn as a library alongside factorio-draftsman for experimentation and complex blueprint generation
 
@@ -67,7 +67,7 @@ test setAndReset {
 
 * parse simple circuits to a simulation model which can be run from python
     * decider and arithmetic combinators including a basic implementation of wildcard signals, as well as constant combinators
-* define tests alongside the circuit definition, which are run automaticly during compilation
+* define tests alongside the circuit definition, which are run automatically during compilation
     * currently, success is silent and errors simply raise python exceptions
 
 ## Roadmap
