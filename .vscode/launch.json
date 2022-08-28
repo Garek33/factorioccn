@@ -11,6 +11,14 @@
             "module": "factorioccn",
             "args": ["examples/safe_crossing.fccn"],
             "justMyCode": false
+        },
+        {
+            "name": "examples/steam_latch.fccn",
+            "type": "python",
+            "request": "launch",
+            "module": "factorioccn",
+            "args": ["examples/steam_latch.fccn"],
+            "justMyCode": false
         }
     ]
 }
