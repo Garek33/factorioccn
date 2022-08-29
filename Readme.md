@@ -43,12 +43,12 @@ latch_in, loop -> S > R : S=1 -> loop, io
 
 test setAndReset {
     0: io += {steam:12000}, for 3 io =~ {S:0}  
-    #on tick 0, start with 'enaugh' steam. Also check for the next 3 ticks (including tick 0) that S doesn't get set. 
+    #on tick 0, start with 'enough' steam. Also check for the next 3 ticks (including tick 0) that S doesn't get set. 
     #This considers the propagation delay of 2 through the circuit (it should also output nothing until the initial input has propagated)
-    1: io += {steam:500}            #on tick 1, send a single blip of not enaugh steam
+    1: io += {steam:500}            #on tick 1, send a single blip of not enough steam
     2: for 5 io += {steam:13000}    #for ticks 2 to 6, send an in between amount of steam
     3: for 6 io =~ {S:1}            #after propagation delay, we expect S=1 for ticks 3 to 8
-    7: io += {steam:21000}          #send enaugh steam to reset the latch
+    7: io += {steam:21000}          #send enough steam to reset the latch
     8: for 3 io += {steam:19000}    #inbetween amount til tick 10
     9: for 3 io =~ {S:0, R:0}       #expect S to be (and keep) reset, also check for R not leaking
 }

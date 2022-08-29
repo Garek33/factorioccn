@@ -16,7 +16,7 @@ a,b -> signal-dot > 4 : signal-dot(1) -> c,d
 #constant combinator
 {signal-A: 4, signal-dot: 7, signal-9: 12} -> a,b
 
-#fix postion
+#fix position
 a,b -> signal-dot = signal-A * 3 -> c,d @ 3, 2
 
 #circuit template
