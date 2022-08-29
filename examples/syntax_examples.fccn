@@ -14,15 +14,16 @@ a,b -> signal-dot > 4 : signal-dot -> c,d
 a,b -> signal-dot > 4 : signal-dot(1) -> c,d
 
 #constant combinator
-{signal-A(4), signal-dot(7), signal-9(12)} -> a,b
+{signal-A: 4, signal-dot: 7, signal-9: 12} -> a,b
 
 #fix postion
 a,b -> signal-dot = signal-A * 3 -> c,d @ 3, 2
 
 #circuit template
-template exampletemplate(type t, value v, signal s, wire w) {
+tmpl exampletemplate(stype t, int i, signal s, wire w) {
     #code here may use the parameters
 }
 #use a template like calling a procedure
+
 #import templates from other files
 import "somefile.fccn"
