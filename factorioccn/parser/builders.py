@@ -1,6 +1,6 @@
-from collections.abc import MutableMapping, Callable, Sequence
+from collections.abc import MutableMapping, Callable, Sequence, MutableSequence
 
-from factorioccn.model.combinators import BinaryCombinator
+from factorioccn.model.combinators import BinaryCombinator, Combinator
 from model.toplevel import Circuit, Test
 from model.core import Frame, Wire
 from factorioccn.model.testing import TestExpects, TestOperation, TestSets, Tick
@@ -8,17 +8,18 @@ from factorioccn.model.testing import TestExpects, TestOperation, TestSets, Tick
 
 class CircuitBuilder:
     def __init__(self):
-        self.circuit = Circuit()
-        self.tests: list[Test] = []
+        self.wires: MutableMapping[str, Wire] = {}
+        self.combinators: MutableSequence[Combinator] = []
+        self.tests: MutableSequence[Callable] = []
 
     def process_wires(self, wires: Sequence[str]):
         for wire in wires:
-            if wire not in self.circuit.wires:
-                self.circuit.wires[wire] = Wire()
-        return [self.circuit.wires[w] for w in wires]
+            if wire not in self.wires:
+                self.wires[wire] = Wire()
+        return [self.wires[w] for w in wires]
 
     def register_combinator(self, combinator):
-        self.circuit.combinators.append(combinator)
+        self.combinators.append(combinator)
         if isinstance(combinator, BinaryCombinator):
             for wire in combinator.input_wires:
                 wire.outputs.append(combinator)
@@ -26,13 +27,12 @@ class CircuitBuilder:
             wire.inputs.append(combinator)
 
     def add_test(self, name: str, ticks: Sequence[Tick]):
-        self.tests.append(Test(name, self.circuit, ticks))
+        self.tests.append(lambda circuit: Test(name, circuit, ticks))
 
     def finalize(self):
-        for test in self.tests:
-            test.run()
-        self.circuit.tests = self.tests
-        return self.circuit
+        circuit = Circuit(self.wires, self.combinators)
+        circuit.tests = [t(circuit) for t in self.tests]
+        return circuit
 
 
 class TestTickBuilder:

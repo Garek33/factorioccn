@@ -17,10 +17,11 @@ class Frame(UserDict[str, int]):
         return self
 
     def __getitem__(self, key: str):
-        """return self[key] or 0 if key not in self"""
-        if key not in self.keys():
+        """return 0 if key not in self instead of raising KeyError"""
+        try:
+            return super().__getitem__(key)
+        except KeyError:
             return 0
-        return super().__getitem__(key)
 
 
 class Wire:

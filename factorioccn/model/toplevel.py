@@ -1,6 +1,6 @@
 """Classes that represent some constructs on the top level of a fccn file,
 most of which may be returned as a parsing result"""
-from collections.abc import Sequence, MutableMapping, MutableSequence
+from collections.abc import Sequence, MutableSequence, Mapping
 
 from model.combinators import Combinator
 from model.core import Wire, Frame
@@ -9,9 +9,10 @@ from model.testing import Tick
 
 class Circuit:
     """A combinator circuit and its associated tests"""
-    def __init__(self):
-        self.wires: MutableMapping[str, Wire] = {}
-        self.combinators: MutableSequence[Combinator] = []
+
+    def __init__(self, wires: Mapping[str, Wire], combinators: Sequence[Combinator]):
+        self.wires = wires
+        self.combinators = combinators
         self.tests: Sequence[Test] = []
 
     def tick(self, n: int = 1) -> None:
@@ -29,9 +30,15 @@ class Circuit:
         for key in self.wires:
             print(f'{key}: {self.wires[key].signals}')
 
+    def run_tests(self):
+        """run all tests defined for this circuit"""
+        for t in self.tests:
+            t.run()
+
 
 class Test:
     """A full test run for a specific ``Circuit``"""
+
     def __init__(self, name: str, circuit: Circuit, ticks: Sequence[Tick]):
         """Create a test for a specific ``Circuit``.
 
