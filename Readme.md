@@ -75,6 +75,7 @@ test setAndReset {
 This is roughly in expected order of implementation, but not a strict schedule in any way, shape or form.
 
 * (more) comprehensive unittests
+* placement specifiers for combinator statements
 * simple placement algorithm and blueprint output (the latter via draftsman for validation)
     * I'm currently thinking about using a greedy BFS. That's not as simple as possible, but otoh could handle a lot of circuits reasonably well.
 * proper standalone executable / CLI for tests and blueprint generation
@@ -86,6 +87,7 @@ This is roughly in expected order of implementation, but not a strict schedule i
 * use draftsman in the validation/simulation process
     * validate signal names (with shorthands i.e. `S` for `signal-s` and `steam` for `fluid-steam`)
     * correct signal order for anything expressions
+* timing specifiers and constraints
 * shorthands
     * multiple combinators in a statement with anonymous wires in between for single-wire operation
     * multiple arithmetic operations on a single signal and wire as a single expression

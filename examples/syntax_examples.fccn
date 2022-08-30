@@ -16,14 +16,21 @@ a,b -> signal-dot > 4 : signal-dot(1) -> c,d
 #constant combinator
 {signal-A: 4, signal-dot: 7, signal-9: 12} -> a,b
 
-#fix position
-a,b -> signal-dot = signal-A * 3 -> c,d @ 3, 2
+#fix position at x = 0 y = max
+a,b -> signal-dot = signal-A * 3 -> c,d : 0 @ 0,^
+
+#specify timing directly
+in -> out : 'a -> 'b
+in -> x = x * -1 : 'a -> 'b
+#... or with separate constraints
+#may also specify offsets to named timings
 
 #circuit template
 tmpl exampletemplate(stype t, int i, signal s, wire w) {
     #code here may use the parameters
 }
 #use a template like calling a procedure
+#position specifier can use corner matching like 0,0 @ 5,0
 
 #import templates from other files
 import "somefile.fccn"
