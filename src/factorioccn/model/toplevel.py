@@ -1,10 +1,10 @@
 """Classes that represent some constructs on the top level of a fccn file,
 most of which may be returned as a parsing result"""
-from collections.abc import Sequence, MutableSequence, Mapping
+from collections.abc import Sequence, Mapping
 
-from model.combinators import Combinator
-from model.core import Wire, Frame
-from model.testing import Tick
+from factorioccn.model.combinators import Combinator
+from factorioccn.model.core import Wire, Frame
+from factorioccn.model.testing import Tick
 
 
 class Circuit:

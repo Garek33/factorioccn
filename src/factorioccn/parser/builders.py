@@ -6,9 +6,9 @@ from tatsu.walkers import NodeWalker
 
 from factorioccn.model.combinators import BinaryCombinator, Combinator, ArithmeticCombinator, DeciderCombinator, \
     ConstantCombinator
+from factorioccn.model.core import Frame, Wire
 from factorioccn.model.testing import TestExpects, TestOperation, TestSets, Tick
-from model.core import Frame, Wire
-from model.toplevel import Circuit, Test
+from factorioccn.model.toplevel import Circuit, Test
 
 
 # noinspection PyMethodMayBeStatic

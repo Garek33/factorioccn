@@ -1,7 +1,7 @@
 import unittest
 
 from factorioccn.model.combinators import Combinator, BinaryCombinator
-from model.core import Frame, Wire
+from factorioccn.model.core import Frame, Wire
 
 
 class TestSignalSet(unittest.TestCase):

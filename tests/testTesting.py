@@ -1,9 +1,9 @@
 import unittest
 from typing import Mapping
 
-from model.core import Frame, Wire
+from factorioccn.model.core import Frame, Wire
 from factorioccn.model.testing import SignalTest, TestExpects, TestSets, Tick, WrongSignalError
-from model.toplevel import Test
+from factorioccn.model.toplevel import Test
 
 
 def make_wire(content: Mapping[str, int]):

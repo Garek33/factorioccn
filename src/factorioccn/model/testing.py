@@ -2,7 +2,7 @@ from collections.abc import MutableMapping, Mapping, Sequence
 from dataclasses import dataclass
 from functools import reduce
 
-from model.core import Frame, Wire
+from factorioccn.model.core import Frame, Wire
 
 
 @dataclass
@@ -37,6 +37,7 @@ class TestOperation:
 
 class TestExpects(TestOperation):
     """Test the specified ``wire`` against the ``values``."""
+
     def test(self, wires: Mapping[str, Wire]) -> Sequence[SignalTest]:
         """Test the specified ``wire`` against the ``values``.
 
@@ -49,6 +50,7 @@ class TestExpects(TestOperation):
 
 class TestSets(TestOperation):
     """Add the contained ``values`` to the specified ``wire``"""
+
     def set(self, wires: Mapping[str, Wire]) -> None:
         """Add the contained ``values`` to the specified ``wire``.
 
@@ -59,6 +61,7 @@ class TestSets(TestOperation):
 
 class WrongSignalError(Exception):
     """Exception raised if a test fails with a mismatching or missing signal"""
+
     def __init__(self, results: Sequence[SignalTest], tick: int, test: str):
         self.test = test
         self.tick = tick
@@ -71,6 +74,7 @@ class WrongSignalError(Exception):
 
 class Tick:
     """a specific, non-empty tick of a circuit test"""
+
     def __init__(self, tick: int, expected: Sequence[TestExpects], sets: Sequence[TestSets]):
         """Create a test tick.
 
@@ -98,5 +102,3 @@ class Tick:
             raise WrongSignalError(failed, self.tick, *errorargs)
         for s in self._sets:
             s.set(wires)
-
-

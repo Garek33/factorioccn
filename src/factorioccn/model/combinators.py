@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from functools import reduce
 from typing import Any
 
-from model.core import Frame, Wire
+from factorioccn.model.core import Frame, Wire
 
 
 class Combinator:
@@ -11,6 +11,7 @@ class Combinator:
     This already handles input from wires and most of the tick simulation.
     Subclasses are required to implement ``process``.
     """
+
     def __init__(self, output_wires: Sequence[Wire]):
         self.input = Frame()
         """input signals, written by ``Wire.tick``"""
@@ -44,6 +45,7 @@ class BinaryCombinator(Combinator):
     ``BinaryCombinator`` provides common handling of storing input and output wires, operand names,
     as well as the helpers ``select_inputs`` and ``process_arg``
     """
+
     def __init__(self, input_wires: Sequence[Wire], left: str, right: str, output_wires: Sequence[Wire]):
         """create a BinaryCombinator. This does not modify the given wires,
         adding the combinator to their inputs and outputs is the callers' responsibility.
@@ -217,6 +219,7 @@ class ArithmeticCombinator(BinaryCombinator):
 
 class ConstantCombinator(Combinator):
     """simulate a constant combinator, that is a combinator outputting a constant frame of signals."""
+
     def __init__(self, signals: Frame, output_wires: Sequence[Wire]):
         """create a constant combinator
 
@@ -228,5 +231,3 @@ class ConstantCombinator(Combinator):
 
     def process(self, _):
         return self.signals
-
-

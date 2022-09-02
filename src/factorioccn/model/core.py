@@ -35,7 +35,7 @@ class Wire:
     def __init__(self):
         self.signals = Frame()
         """the signals output from ``self.inputs`` or input by e.g. test simulation in the last tick"""
-        from model.combinators import Combinator  # local import to avoid cyclic dependency
+        from factorioccn.model.combinators import Combinator  # local import to avoid cyclic dependency
         self.inputs: MutableSequence[Combinator] = []
         """the combinators which output to this wire, i.e. its inputs"""
         self.outputs: MutableSequence[Combinator] = []

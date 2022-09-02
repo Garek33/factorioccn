@@ -1,8 +1,8 @@
 import unittest
 
-from model.core import Frame
+from factorioccn.model.core import Frame
 from factorioccn.model.testing import Tick
-from model.toplevel import Test
+from factorioccn.model.toplevel import Test
 from factorioccn.parser import parse
 
 
