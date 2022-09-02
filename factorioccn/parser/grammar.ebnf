@@ -1,7 +1,7 @@
 @@grammar :: fccn
 @@eol_comments :: /#.*?$/
 
-start::Script = {lines+:statement | () } $;
+start::Circuit = {lines+:statement | () } $;
 statement = combinatorstmt | test;
 
 test::Test = 'test' ~ name:identifier '{' {lines+:teststmt} '}';
@@ -14,8 +14,8 @@ testexpects::Testexpects = '=~';
 testhold::Testhold = 'for' count:number (cmds+:testcmd | '{' ','.{cmds+:testcmd} '}');
 
 combinatorstmt::Combinatorstmt = [input:wireset '->'] action:combinator '->' ~ output:wireset terminator ;
-wireset::Wires = wires+:wire [',' wires+:wire] ;
-wire = identifier;
+wireset = @+:wire [',' @+:wire] ;
+wire = @:identifier;
 combinator = arithmetic | decider | constcombinator;
 
 decider::Decider = left:signaltype op:logiop right:argument ':' ~ result:deciderout ;

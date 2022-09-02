@@ -3,8 +3,8 @@ from importlib import resources
 from tatsu import compile
 from tatsu.semantics import ModelBuilderSemantics
 
-from factorioccn.parser.walker import Walker
-from model.toplevel import Circuit
+from factorioccn.model.toplevel import Circuit
+from factorioccn.parser.builders import CircuitBuilder
 
 with resources.open_text('factorioccn.parser', 'grammar.ebnf') as grammar_file:
     _grammar = grammar_file.read()
@@ -18,6 +18,5 @@ def parse(input: str) -> Circuit:
     :return: the resulting circuit
     """
     model = _parser.parse(input)
-    # noinspection PyShadowingNames
-    walker = Walker()
+    walker = CircuitBuilder()
     return walker.walk(model)
