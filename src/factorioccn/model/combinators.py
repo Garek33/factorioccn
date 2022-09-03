@@ -25,7 +25,7 @@ class Combinator:
             wire.signals += output
         self.input.clear()
 
-    def process(self, input: Frame):
+    def process(self, input: Frame):  # pragma: no cover
         """Abstract method which does the actual input processing.
 
         :param input: the current input signals
@@ -66,11 +66,14 @@ class BinaryCombinator(Combinator):
                 {s: input[s] for s in input}, BinaryCombinator.process_arg(input, right))
         else:
             self.select_inputs = lambda input: ({left: input[left]}, BinaryCombinator.process_arg(input, right))
-            """extract arguments from an input frame according to ``left`` and ``right``
-            
-            :param input: ``Frame`` of input signals
-            :returns: a tuple containing the left and right argument extracted from input
-            """
+
+    def select_inputs(self, input: Frame):
+        """extract arguments from an input frame according to ``left`` and ``right``
+
+        For performance, this is overwritten in ``__init__``
+        :param input: ``Frame`` of input signals
+        :returns: a tuple containing the left and right argument extracted from input
+        """
 
     @staticmethod
     def process_arg(input: Frame, arg: str) -> int:

@@ -14,7 +14,7 @@ class TestTestParsing(unittest.TestCase):
         test testcase {
             0: foo += {a:1, b:2}, bar =~ {a:0}
             1: for 5 bar += {a:1}
-            3: bar += {b:2}
+            3: bar += {b:2}, for 3 { bar += {a:3}, bar =~ {b:0} }
             4: bar += {a:2}
             6: bar += {c:3}, foo += {a:2}
             8: foo += {c:3}
@@ -22,6 +22,7 @@ class TestTestParsing(unittest.TestCase):
         ''')
 
     def testBasic(self):
+        self.circuit.run_tests()
         test: Test = self.circuit.tests[0]
         self.assertEqual(test._name, 'testcase')
         self.assertEqual(len(test._ticks), 8)
@@ -40,11 +41,17 @@ class TestTestParsing(unittest.TestCase):
                 val = Frame({'a': 1})
                 if i == 3:
                     val['b'] = 2
+                if i >= 3:
+                    val['a'] += 3
                 if i == 4:
                     val['a'] += 2
                 sets = test._ticks[i]._sets[0]
                 self.assertEqual(sets.wire, 'bar')
                 self.assertEqual(sets.values, val)
+                if i >= 3:
+                    sets = test._ticks[i]._expected[0]
+                    self.assertEqual(sets.wire, 'bar')
+                    self.assertEqual(sets.values, {'b': 0})
 
     def testMultipleSets(self):
         tick: Tick = self.circuit.tests[0]._ticks[6]
